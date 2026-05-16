@@ -1,3 +1,3 @@
-﻿INSERT INTO Admins(Username,Email,Password)
-VALUES
-('Admin','admin@gmail.com','admin@123#')
+﻿Use CrimeVisionDB;
+Go
+SELECT COUNT(*) AS TotalRows FROM Officers;
