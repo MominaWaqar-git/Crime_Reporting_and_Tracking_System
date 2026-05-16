@@ -1,0 +1,417 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Admin Dashboard</title>
+
+    <!-- FONT -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- ICONS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
+
+    <style>
+
+        :root {
+            --blue: #2563eb;
+            --purple: #9333ea;
+            --cyan: #06b6d4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #050816;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* BACKGROUND BLUR BLOBS */
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: .6;
+            z-index: 0;
+        }
+
+        .b1 {
+            width: 450px;
+            height: 450px;
+            background: var(--blue);
+            top: -120px;
+            left: -120px;
+        }
+
+        .b2 {
+            width: 450px;
+            height: 450px;
+            background: var(--purple);
+            bottom: -120px;
+            right: -120px;
+        }
+
+        /* HEADER */
+        .header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 18px 8%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(25px);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            z-index: 10;
+        }
+
+            .header::after {
+                content: "";
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                height: 2px;
+                width: 100%;
+                background: linear-gradient(90deg, var(--blue), var(--purple), var(--cyan));
+                opacity: 0.8;
+            }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+            .logo i {
+                color: #60a5fa;
+            }
+
+        /* LAYOUT */
+        .container {
+            display: flex;
+            margin-top: 80px;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 260px;
+            min-height: calc(100vh - 80px);
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255,255,255,0.08);
+            z-index: 2;
+        }
+
+        .menu a {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            margin: 10px 0;
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            transition: .3s;
+            overflow: hidden;
+        }
+
+            .menu a::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(90deg, rgba(37,99,235,0.25), rgba(147,51,234,0.25));
+                opacity: 0;
+                transition: .3s;
+            }
+
+            .menu a:hover::before {
+                opacity: 1;
+            }
+
+            .menu a:hover {
+                transform: translateX(8px);
+                box-shadow: 0 0 20px rgba(99,102,241,0.25);
+                background: rgba(255,255,255,0.06);
+            }
+
+            .menu a.active {
+                background: linear-gradient(90deg, var(--blue), var(--purple));
+            }
+
+        /* MAIN */
+        .main {
+            flex: 1;
+            padding: 30px;
+            z-index: 2;
+        }
+
+        /* TOPBAR */
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .admin-box {
+            padding: 10px 15px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(15px);
+        }
+
+        /* CARDS */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            position: relative;
+            padding: 20px;
+            border-radius: 18px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(18px);
+            transition: .4s;
+            overflow: hidden;
+        }
+
+            .card:hover {
+                transform: translateY(-10px) scale(1.03);
+                box-shadow: 0 0 25px rgba(37,99,235,0.4), 0 0 50px rgba(147,51,234,0.2);
+            }
+
+            .card::after {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background: radial-gradient(circle, rgba(99,102,241,0.2), transparent 60%);
+                opacity: 0;
+                transition: .4s;
+            }
+
+            .card:hover::after {
+                opacity: 1;
+            }
+
+            .card i {
+                font-size: 28px;
+                color: #60a5fa;
+                margin-bottom: 10px;
+                transition: .3s;
+            }
+
+            .card:hover i {
+                color: var(--purple);
+                transform: scale(1.2);
+            }
+
+            .card h3 {
+                font-size: 24px;
+            }
+
+            .card p {
+                color: #cbd5e1;
+            }
+
+        /* TABLE */
+        .table-box {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 18px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(18px);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        th {
+            color: var(--blue);
+        }
+
+        tr {
+            transition: .3s;
+        }
+
+            tr:hover {
+                background: rgba(255,255,255,0.06);
+                transform: scale(1.01);
+            }
+
+        .status {
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+        }
+
+        .pending {
+            background: #fbbf24;
+            color: black;
+        }
+
+        .progress {
+            background: #3b82f6;
+        }
+
+        .resolved {
+            background: #22c55e;
+        }
+
+        /* FOOTER */
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+            padding: 12px;
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <!-- BACKGROUND -->
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="logo">
+            <i class="fa-solid fa-shield-halved"></i>
+            CrimeVision Admin
+        </div>
+    </div>
+
+    <div class="container">
+
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <div class="menu">
+                <a class="active" href="#"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+                <a href="#"><i class="fa-solid fa-file"></i> Crime Reports</a>
+                <a href="#"><i class="fa-solid fa-users"></i> Users</a>
+                <a href="#"><i class="fa-solid fa-user-shield"></i> Officers</a>
+                <a href="@Url.Action("AdminLogin", "Account")">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <!-- MAIN -->
+        <div class="main">
+
+            <div class="topbar">
+                <h2>Dashboard Overview</h2>
+
+                <div class="admin-box">
+                    Welcome, @Context.Session.GetString("Admin")
+                </div>
+            </div>
+
+            <!-- CARDS -->
+            <div class="cards">
+
+                <div class="card">
+                    <i class="fa-solid fa-file"></i>
+                    <h3>120</h3>
+                    <p>Total Reports</p>
+                </div>
+
+                <div class="card">
+                    <i class="fa-solid fa-clock"></i>
+                    <h3>45</h3>
+                    <p>Pending Cases</p>
+                </div>
+
+                <div class="card">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <h3>60</h3>
+                    <p>Resolved</p>
+                </div>
+
+                <div class="card">
+                    <i class="fa-solid fa-user"></i>
+                    <h3>30</h3>
+                    <p>Users</p>
+                </div>
+
+            </div>
+
+            <!-- TABLE -->
+            <div class="table-box">
+
+                <h3 style="margin-bottom:15px;">Recent Crime Reports</h3>
+
+                <table>
+                    <tr>
+                        <th>ID</th>
+                        <th>Crime Type</th>
+                        <th>Location</th>
+                        <th>Status</th>
+                    </tr>
+
+                    <tr>
+                        <td>1</td>
+                        <td>Theft</td>
+                        <td>Islamabad</td>
+                        <td><span class="status pending">Pending</span></td>
+                    </tr>
+
+                    <tr>
+                        <td>2</td>
+                        <td>Cyber Crime</td>
+                        <td>Lahore</td>
+                        <td><span class="status progress">In Progress</span></td>
+                    </tr>
+
+                    <tr>
+                        <td>3</td>
+                        <td>Assault</td>
+                        <td>Karachi</td>
+                        <td><span class="status resolved">Resolved</span></td>
+                    </tr>
+                </table>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        © 2026 CrimeVision | Smart Crime Reporting & Tracking System
+    </div>
+
+</body>
+</html>

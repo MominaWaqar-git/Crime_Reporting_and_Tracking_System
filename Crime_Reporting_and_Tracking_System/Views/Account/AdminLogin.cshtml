@@ -1,0 +1,293 @@
+﻿@model Crime_Reporting_and_Tracking_System.Models.AdminLogin
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+
+    <meta name="viewport" content="width=device-width" />
+    <title>Admin Login</title>
+
+    <!-- FONT -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- ICONS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins',sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #050816;
+            overflow: hidden;
+            color: white;
+        }
+
+        /* BACKGROUND */
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: .6;
+        }
+
+        .b1 {
+            width: 400px;
+            height: 400px;
+            background: #2563eb;
+            top: -120px;
+            left: -120px;
+        }
+
+        .b2 {
+            width: 400px;
+            height: 400px;
+            background: #9333ea;
+            bottom: -120px;
+            right: -120px;
+        }
+
+        /* HEADER */
+        .header {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            padding: 18px 8%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .logo {
+            font-size: 26px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+            .logo i {
+                color: #60a5fa;
+            }
+
+        /* LOGIN BOX */
+        .login-box {
+            width: 420px;
+            padding: 45px;
+            border-radius: 30px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 50px rgba(0,0,0,.5);
+            z-index: 2;
+        }
+
+            .login-box h2 {
+                text-align: center;
+                margin-bottom: 25px;
+                font-size: 32px;
+            }
+
+        .input-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+            .input-box input {
+                width: 100%;
+                padding: 15px;
+                border-radius: 14px;
+                border: none;
+                outline: none;
+                background: rgba(255,255,255,0.08);
+                color: white;
+                border: 1px solid rgba(255,255,255,0.1);
+            }
+
+            .input-box i {
+                position: absolute;
+                right: 15px;
+                top: 15px;
+                cursor: pointer;
+                color: #cbd5e1;
+            }
+
+        /* BUTTON */
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(135deg,#2563eb,#9333ea);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: .3s;
+        }
+
+            .btn:hover {
+                transform: translateY(-3px);
+            }
+
+        /* BACK BUTTON */
+        .back-btn {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 14px;
+            text-decoration: none;
+            color: white;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: .3s;
+        }
+
+            .back-btn:hover {
+                transform: translateY(-3px);
+                background: rgba(255,255,255,0.15);
+            }
+
+        .error {
+            color: #ff6b6b;
+            font-size: 13px;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .attempts {
+            color: #fbbf24;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        /* FOOTER */
+        .footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+            padding: 15px;
+            background: rgba(255,255,255,0.04);
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <!-- BACKGROUND -->
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="logo">
+            <i class="fa-solid fa-shield-halved"></i>
+            CrimeVision
+        </div>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="login-box">
+
+        <h2>Admin Login</h2>
+
+        @using (Html.BeginForm())
+        {
+            <div class="input-box">
+                @Html.TextBoxFor(x => x.Username, new { placeholder = "Username" })
+                @Html.ValidationMessageFor(x => x.Username, "", new { @class = "error" })
+            </div>
+
+            <div class="input-box">
+                @Html.PasswordFor(x => x.Password, new { id = "password", placeholder = "Password" })
+                @Html.ValidationMessageFor(x => x.Password, "", new { @class = "error" })
+                <i class="fa-solid fa-eye" id="togglePassword"></i>
+            </div>
+
+            <button type="submit" class="btn">
+                Login
+            </button>
+
+            <a href="@Url.Action("Index", "Home")" class="back-btn">
+                <i class="fa-solid fa-arrow-left"></i>
+                Back To Home
+            </a>
+
+            <div class="error">
+                @ViewBag.Error
+            </div>
+
+            <div style="color:#fbbf24;text-align:center;">
+                @ViewBag.Attempts
+            </div>
+
+            <div id="timer" style="color:#60a5fa;text-align:center;font-weight:500;margin-top:10px;">
+            </div>
+        }
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        © 2026 CrimeVision | Smart Crime Reporting & Tracking System
+    </div>
+
+    <!-- PASSWORD TOGGLE -->
+    <script>
+        const toggle = document.getElementById("togglePassword");
+        const password = document.getElementById("password");
+
+        toggle.addEventListener("click", function () {
+
+            const type = password.type === "password" ? "text" : "password";
+            password.type = type;
+
+            this.classList.toggle("fa-eye-slash");
+        });
+    </script>
+
+    @if (ViewBag.Locked != null && ViewBag.Locked == true)
+    {
+        <script>
+            let seconds = @ViewBag.SecondsLeft;
+
+            const interval = setInterval(() => {
+
+                seconds--;
+
+                if (seconds <= 0) {
+                    clearInterval(interval);
+                    location.reload();
+                }
+
+                document.getElementById("timer").innerHTML =
+                    "Unlock in " + seconds + " seconds";
+
+            }, 1000);
+        </script>
+    }
+
+</body>
+</html>

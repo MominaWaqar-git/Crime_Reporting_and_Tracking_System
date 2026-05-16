@@ -10,6 +10,101 @@
 </head>
 <body>
     <header>
+        <!DOCTYPE html>
+        <html>
+        <head>
+
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width" />
+
+            <title>@ViewBag.Title - CrimeVision</title>
+
+            <!-- GOOGLE FONT -->
+            <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+            <!-- FONT AWESOME -->
+            <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
+
+            <style>
+
+                * {
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                    font-family: 'Poppins',sans-serif;
+                }
+
+                body {
+                    background: #050816;
+                    color: white;
+                }
+
+                /* NAVBAR */
+
+                .navbar {
+                    width: 100%;
+                    padding: 18px 8%;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    background: rgba(255,255,255,0.05);
+                    border-bottom: 1px solid rgba(255,255,255,0.08);
+                    backdrop-filter: blur(20px);
+                }
+
+                .logo {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    font-size: 24px;
+                    font-weight: 700;
+                }
+
+                    .logo i {
+                        color: #60a5fa;
+                        font-size: 28px;
+                    }
+
+                /* FOOTER */
+
+                footer {
+                    margin-top: 50px;
+                    text-align: center;
+                    padding: 25px;
+                    border-top: 1px solid rgba(255,255,255,0.08);
+                    color: #cbd5e1;
+                }
+
+            </style>
+
+        </head>
+        <body>
+
+            <!-- HEADER -->
+            <div class="navbar">
+
+                <div class="logo">
+
+                    <i class="fa-solid fa-shield-halved"></i>
+
+                    CrimeVision
+
+                </div>
+
+            </div>
+
+            <!-- PAGE CONTENT -->
+            @RenderBody()
+
+            <!-- FOOTER -->
+            <footer>
+
+                © 2026 CrimeVision | Crime Reporting System
+
+            </footer>
+
+        </body>
+    </html>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Crime_Reporting_and_Tracking_System</a>
