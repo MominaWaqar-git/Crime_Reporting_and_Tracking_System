@@ -75,7 +75,6 @@
             outline: none;
         }
 
-    
     select.form-control {
         appearance: none;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2306b6d4'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
@@ -83,19 +82,19 @@
         background-position: right 16px center;
         background-size: 18px;
         padding-right: 40px;
-        color: #06b6d4; 
-        border: 1px solid rgba(6, 182, 212, 0.2); 
-        background-color: rgba(6, 182, 212, 0.03); 
+        color: #06b6d4;
+        border: 1px solid rgba(6, 182, 212, 0.2);
+        background-color: rgba(6, 182, 212, 0.03);
     }
 
         select.form-control:focus {
-            border-color: #00f5ff; 
+            border-color: #00f5ff;
             box-shadow: 0 0 20px rgba(0, 245, 255, 0.35);
         }
 
         select.form-control option {
-            background: #0f172a !important; 
-            color: #e5e7eb !important; 
+            background: #0f172a !important;
+            color: #e5e7eb !important;
             padding: 12px;
         }
 
@@ -233,7 +232,6 @@
     }
 </style>
 
-<!-- FLOATING SUCCESS TOAST -->
 @if (ViewBag.SuccessMessage != null)
 {
     <div class="cyber-toast" id="successToast">
@@ -257,7 +255,6 @@
     </script>
 }
 
-<!-- Debug Error Alert Box -->
 @if (ViewBag.DebugError != null)
 {
     <div style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #f87171; padding: 15px; border-radius: 12px; margin-bottom: 20px; font-size: 14px;">
@@ -271,7 +268,6 @@
 
     <form asp-action="Create" asp-controller="Officers" method="post" enctype="multipart/form-data">
 
-        <!-- ROW 1 -->
         <div class="grid-2">
             <div class="form-group">
                 <label asp-for="Name">Officer Full Name</label>
@@ -285,7 +281,6 @@
             </div>
         </div>
 
-        <!-- ROW 2 -->
         <div class="grid-2">
             <div class="form-group">
                 <label asp-for="CNIC">CNIC Number (13 Digits)</label>
@@ -299,7 +294,6 @@
             </div>
         </div>
 
-        <!-- ROW 3 -->
         <div class="grid-2">
             <div class="form-group">
                 <label asp-for="Rank">Rank / Designation</label>
@@ -323,7 +317,6 @@
             </div>
         </div>
 
-        <!-- ROW 4 & 5 -->
         <div class="form-group">
             <label asp-for="StationName">Assigned Police Station / Circle</label>
             <input asp-for="StationName" class="form-control" placeholder="e.g. Kohsar Police Station, Islamabad" />
@@ -336,7 +329,6 @@
             <span asp-validation-for="Address" class="text-danger"></span>
         </div>
 
-        <!-- ROW 6 -->
         <div class="form-group">
             <label>Officer Profile Biometric Photo</label>
             <div class="file-upload-wrapper" onclick="document.getElementById('photoInput').click();">
@@ -346,7 +338,6 @@
             </div>
         </div>
 
-        <!-- ACTION BUTTONS -->
         <div class="action-row">
             <a href="@Url.Action("Index", "Officers")" class="btn-back-cyber">
                 <i class="fa-solid fa-arrow-left"></i> Back to Registry

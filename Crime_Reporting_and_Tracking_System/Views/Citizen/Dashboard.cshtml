@@ -1,0 +1,479 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Citizen Dashboard - CrimeVision</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
+
+    <style>
+        :root {
+            --blue: #2563eb;
+            --purple: #9333ea;
+            --cyan: #06b6d4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #050816;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* BACKGROUND NEON BLOBS */
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: .6;
+            z-index: 0;
+        }
+
+        .b1 {
+            width: 450px;
+            height: 450px;
+            background: var(--blue);
+            top: -120px;
+            left: -120px;
+        }
+
+        .b2 {
+            width: 450px;
+            height: 450px;
+            background: var(--purple);
+            bottom: -120px;
+            right: -120px;
+        }
+
+        /* HEADER */
+        .header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 18px 8%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(25px);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            z-index: 10;
+        }
+
+        .header::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 2px;
+            width: 100%;
+            background: linear-gradient(90deg, var(--blue), var(--purple), var(--cyan));
+            opacity: 0.8;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo i {
+            color: #60a5fa;
+        }
+
+        /* CONTAINER LAYOUT */
+        .container {
+            display: flex;
+            margin-top: 80px;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 260px;
+            min-height: calc(100vh - 80px);
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255,255,255,0.08);
+            z-index: 2;
+        }
+
+        .menu a {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            margin: 10px 0;
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            transition: .3s;
+            overflow: hidden;
+            font-size: 14px;
+        }
+
+        .menu a::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, rgba(37,99,235,0.25), rgba(147,51,234,0.25));
+            opacity: 0;
+            transition: .3s;
+        }
+
+        .menu a:hover::before {
+            opacity: 1;
+        }
+
+        .menu a:hover {
+            transform: translateX(8px);
+            box-shadow: 0 0 20px rgba(99,102,241,0.25);
+            background: rgba(255,255,255,0.06);
+        }
+
+        .menu a.active {
+            background: linear-gradient(90deg, var(--blue), var(--purple));
+        }
+
+        /* MAIN WORKSPACE */
+        .main {
+            flex: 1;
+            padding: 30px;
+            z-index: 2;
+            margin-bottom: 60px;
+        }
+
+        /* TOPBAR */
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .welcome-box {
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(15px);
+            font-size: 14px;
+        }
+
+        /* METRIC CARDS */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            padding: 25px;
+            border-radius: 18px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: .3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255,255,255,0.2);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        .card-info h3 {
+            font-size: 32px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .card-info p {
+            color: #94a3b8;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .icon-blue { background: rgba(37,99,235,0.2); color: #60a5fa; border: 1px solid rgba(37,99,235,0.3); }
+        .icon-purple { background: rgba(147,51,234,0.2); color: #c084fc; border: 1px solid rgba(147,51,234,0.3); }
+        .icon-cyan { background: rgba(6,182,212,0.2); color: #22d3ee; border: 1px solid rgba(6,182,212,0.3); }
+
+        /* CONTENT DISPLAY BOX */
+        .showcase-box {
+            padding: 30px;
+            border-radius: 18px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            backdrop-filter: blur(18px);
+        }
+
+        .empty-state {
+            max-width: 500px;
+            margin: 0 auto;
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .empty-state i {
+            font-size: 55px;
+            color: rgba(255,255,255,0.2);
+            margin-bottom: 20px;
+        }
+
+        .empty-state h4 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #e2e8f0;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(90deg, var(--blue), var(--purple));
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: .3s;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(147, 51, 234, 0.4);
+        }
+
+        /* DYNAMIC TABLE STYLES */
+        .complaints-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .complaints-table th {
+            padding: 15px;
+            color: #06b6d4;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .complaints-table td {
+            padding: 16px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: #e2e8f0;
+        }
+
+        .complaints-table tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* DYNAMIC BADGES */
+        .badge {
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .badge-pending {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.25);
+        }
+
+        .badge-progress {
+            background: rgba(37, 99, 235, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(37, 99, 235, 0.25);
+        }
+
+        .badge-resolved {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.25);
+        }
+
+        /* FOOTER */
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+            padding: 12px;
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.08);
+            z-index: 10;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+
+    <div class="header">
+        <div class="logo">
+            <i class="fa-solid fa-shield-halved"></i>
+            CrimeVision Citizen
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="sidebar">
+            <div class="menu">
+                <a class="active" href="@Url.Action("CitizenDashboard", "Account")"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+                <a href="@Url.Action("MyComplaints", "Account")"><i class="fa-solid fa-file-invoice"></i> My Complaints</a>
+                <a href="@Url.Action("PublicAlerts", "Account")"><i class="fa-solid fa-bullhorn"></i> Public Alerts</a>
+                <a href="#"><i class="fa-solid fa-user-gear"></i> Profile Settings</a>
+                <a href="@Url.Action("UserLogin", "Account")" style="color: #f87171;">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <div class="main">
+            <div class="topbar">
+                <h2>Dashboard Overview</h2>
+                <div class="welcome-box">
+                    Welcome, Citizen
+                </div>
+            </div>
+
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-info">
+                        <h3>@(ViewBag.TotalCases ?? 0)</h3>
+                        <p>Total Registered Cases</p>
+                    </div>
+                    <div class="card-icon icon-blue">
+                        <i class="fa-solid fa-folder"></i>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-info">
+                        <h3>@(ViewBag.ActiveCases ?? 0)</h3>
+                        <p>Active Investigations</p>
+                    </div>
+                    <div class="card-icon icon-purple">
+                        <i class="fa-solid fa-hourglass-half"></i>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-info">
+                        <h3>@(ViewBag.ResolvedCases ?? 0)</h3>
+                        <p>Resolved Enquiries</p>
+                    </div>
+                    <div class="card-icon icon-cyan">
+                        <i class="fa-solid fa-square-check"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="showcase-box">
+                @if (ViewBag.Complaints != null && ViewBag.Complaints.Count > 0)
+                {
+                    <h3 style="margin-bottom: 20px; font-size: 16px; font-weight: 500; color: #94a3b8;">Recent Crime Reports</h3>
+                    <table class="complaints-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Crime Type</th>
+                                <th>Location</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in ViewBag.Complaints)
+                            {
+                                <tr>
+                                    <td>@item.ID</td>
+                                    <td>@item.CrimeType</td>
+                                    <td>@item.Location</td>
+                                    <td>
+                                        @if (item.Status == "Pending Approval" || item.Status == "Pending")
+                                        {
+                                            <span class="badge badge-pending">@item.Status</span>
+                                        }
+                                        else if (item.Status == "In Progress")
+                                        {
+                                            <span class="badge badge-progress">@item.Status</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-resolved">@item.Status</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <i class="fa-solid fa-folder-open"></i>
+                        <h4>No Active Crime Reports Found</h4>
+                        <p>You haven't filed any complaints or tracking indices yet. If you have witnessed an incident or need to log an issue, click below to proceed.</p>
+                        <a href="@Url.Action("MyComplaints", "Account")" class="btn-action">
+                            <i class="fa-solid fa-plus"></i> File New Complaint
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        © 2026 CrimeVision | Smart Crime Reporting & Tracking System
+    </div>
+
+</body>
+</html>

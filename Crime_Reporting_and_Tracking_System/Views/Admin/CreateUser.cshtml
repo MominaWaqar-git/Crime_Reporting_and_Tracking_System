@@ -1,0 +1,238 @@
+﻿@model Crime_Reporting_and_Tracking_System.Models.User
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Register Citizen";
+}
+
+<style>
+    /* Premium Futuristic Card Container matching Officer template exactly */
+    .form-wrapper {
+        max-width: 850px;
+        margin: 20px auto;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 24px;
+        padding: 40px;
+        backdrop-filter: blur(25px);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+        position: relative;
+        overflow: hidden;
+    }
+
+        .form-wrapper::before {
+            content: '';
+            position: absolute;
+            top: -150px;
+            right: -150px;
+            width: 300px;
+            height: 300px;
+            background: rgba(168, 85, 247, 0.15);
+            filter: blur(100px);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+    .form-header-desc {
+        color: #9ca3af;
+        font-size: 14px;
+        margin-top: -5px;
+        margin-bottom: 30px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        padding-bottom: 15px;
+        text-align: left;
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+        position: relative;
+        text-align: left;
+    }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #60a5fa;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+    .form-control {
+        width: 100%;
+        padding: 14px 16px;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        color: #f3f4f6;
+        font-size: 14px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-sizing: border-box;
+    }
+
+        .form-control:focus {
+            border-color: #a855f7;
+            background: rgba(0, 0, 0, 0.3);
+            box-shadow: 0 0 18px rgba(168, 85, 247, 0.25);
+            outline: none;
+        }
+
+    .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+
+    @@media (max-width: 600px) {
+        .grid-2 {
+            grid-template-columns: 1fr;
+            gap: 0;
+        }
+
+        .action-row {
+            flex-direction: column;
+            gap: 15px;
+        }
+    }
+
+    .file-upload-wrapper {
+        border: 2px dashed rgba(6, 182, 212, 0.3);
+        background: rgba(6, 182, 212, 0.02);
+        border-radius: 14px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+        .file-upload-wrapper:hover {
+            border-color: #06b6d4;
+            background: rgba(6, 182, 212, 0.05);
+        }
+
+        .file-upload-wrapper i {
+            font-size: 26px;
+            color: #06b6d4;
+            margin-bottom: 8px;
+        }
+
+    .text-danger {
+        color: #f87171;
+        font-size: 12px;
+        margin-top: 6px;
+        display: block;
+        font-weight: 500;
+    }
+
+    .action-row {
+        display: flex;
+        gap: 20px;
+        margin-top: 35px;
+    }
+
+    .btn-submit-cyber {
+        flex: 2;
+        background: linear-gradient(90deg, #9333ea 0%, #a855f7 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 15px 30px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(147, 51, 234, 0.3);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+        .btn-submit-cyber:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(147, 51, 234, 0.5);
+        }
+
+    .btn-back-cyber {
+        flex: 1;
+        background: linear-gradient(90deg, #06b6d4 0%, #2563eb 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 15px 25px;
+        font-size: 16px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+        .btn-back-cyber:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.5);
+        }
+</style>
+
+<div class="form-wrapper">
+    <h3 style="color: white; margin: 0 0 8px 0; font-weight: 600; font-size: 22px; text-align: left;">Register New Citizen Profile</h3>
+    <p class="form-header-desc">Input accurate identity data to generate the active civilian profile.</p>
+
+    <form asp-action="AddUser" asp-controller="Admin" method="post" enctype="multipart/form-data">
+
+        <div class="grid-2">
+            <div class="form-group">
+                <label asp-for="FullName">Citizen Full Name</label>
+                <input asp-for="FullName" class="form-control" placeholder="e.g. Abdullah Khan" autocomplete="off" required />
+                <span asp-validation-for="FullName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Email">Official Email Address</label>
+                <input asp-for="Email" class="form-control" placeholder="citizen@crimevision.gov.pk" autocomplete="off" required />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="form-group">
+                <label asp-for="CNIC">CNIC Number (13 Digits)</label>
+                <input asp-for="CNIC" class="form-control" placeholder="e.g. 3740512345671" type="text" maxlength="13" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 13);" required />
+                <span asp-validation-for="CNIC" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PhoneNumber">Mobile Number (11 Digits)</label>
+                <input asp-for="PhoneNumber" class="form-control" placeholder="e.g. 03001234567" type="text" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11);" />
+                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Citizen Profile Biometric Photo</label>
+            <div class="file-upload-wrapper" onclick="document.getElementById('avatarUpload').click();">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <p id="uploadContainerText" style="margin: 0; color: #e5e7eb; font-size: 14px; font-weight: 500;">Click here to upload citizen avatar image</p>
+                <input type="file" id="avatarUpload" name="ProfilePicture" style="display: none;" accept="image/*" onchange="document.getElementById('uploadContainerText').innerHTML = 'Selected: <span style=\'color: #06b6d4;\'>' + this.files[0].name + '</span>';" />
+            </div>
+        </div>
+
+        <div class="action-row">
+            <a href="@Url.Action("Users", "Admin")" class="btn-back-cyber">
+                <i class="fa-solid fa-arrow-left"></i> Back to Registry
+            </a>
+            <button type="submit" class="btn-submit-cyber">
+                <i class="fa-solid fa-user-shield"></i> Authorize & Register Citizen
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

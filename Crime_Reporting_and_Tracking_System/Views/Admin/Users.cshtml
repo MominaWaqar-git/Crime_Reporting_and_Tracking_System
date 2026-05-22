@@ -1,0 +1,195 @@
+﻿@model IEnumerable<Crime_Reporting_and_Tracking_System.Models.User>
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Citizens Registry";
+}
+<style>
+     .dashboard-container {
+         max-width: 1200px;
+         margin: 20px auto;
+         padding: 0 15px;
+     }
+
+     .registry-wrapper {
+         background: rgba(15, 23, 42, 0.6);
+         border: 1px solid rgba(255, 255, 255, 0.05);
+         border-radius: 24px;
+         padding: 30px;
+         box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+         backdrop-filter: blur(20px);
+     }
+
+     .registry-header {
+         display: flex;
+         justify-content: space-between;
+         align-items: center;
+         border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+         padding-bottom: 20px;
+         margin-bottom: 20px;
+     }
+
+     .btn-add-cyber {
+         background: linear-gradient(90deg, #06b6d4 0%, #2563eb 100%);
+         color: white;
+         border: none;
+         border-radius: 12px;
+         padding: 12px 24px;
+         font-size: 14px;
+         font-weight: 600;
+         text-decoration: none;
+         display: inline-flex;
+         align-items: center;
+         gap: 8px;
+         transition: all 0.3s ease;
+         box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
+         text-transform: uppercase;
+         letter-spacing: 0.5px;
+     }
+
+         .btn-add-cyber:hover {
+             transform: translateY(-2px);
+             box-shadow: 0 6px 20px rgba(6, 182, 212, 0.5);
+         }
+
+     .cyber-table {
+         width: 100%;
+         border-collapse: collapse;
+         text-align: left;
+     }
+
+         .cyber-table th {
+             background: rgba(255, 255, 255, 0.03);
+             color: #06b6d4;
+             padding: 14px;
+             font-size: 13px;
+             text-transform: uppercase;
+             border-bottom: 2px solid rgba(6, 182, 212, 0.3);
+         }
+
+         .cyber-table td {
+             padding: 14px;
+             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+             color: #e5e7eb;
+             font-size: 14px;
+         }
+
+         .cyber-table tr:hover {
+             background: rgba(255, 255, 255, 0.02);
+         }
+
+     .citizen-thumb {
+         width: 42px;
+         height: 42px;
+         border-radius: 50%;
+         display: inline-flex;
+         align-items: center;
+         justify-content: center;
+     }
+
+     .badge-status {
+         padding: 4px 10px;
+         border-radius: 20px;
+         font-size: 11px;
+         font-weight: 600;
+     }
+
+     .badge-active {
+         background: rgba(16, 185, 129, 0.15);
+         color: #10b981;
+         border: 1px solid #10b981;
+     }
+
+     .badge-suspended {
+         background: rgba(239, 68, 68, 0.15);
+         color: #ef4444;
+         border: 1px solid #ef4444;
+     }
+
+     .action-icons a {
+         color: #9ca3af;
+         margin-right: 12px;
+         transition: 0.2s;
+         font-size: 16px;
+     }
+
+         .action-icons a:hover {
+             color: #06b6d4;
+    }</style>
+    <div class="dashboard-container">
+        <div class="registry-wrapper">
+
+            <div class="registry-header">
+                <div>
+                    <h3 style="color: white; margin: 0; font-weight: 600; font-size: 22px;">
+                        <i class="fa-solid fa-users-viewfinder" style="color: #06b6d4; margin-right: 8px;"></i> Citizens System Registry
+                    </h3>
+                    <p style="color: #9ca3af; margin: 5px 0 0 0; font-size: 13px;">Central database tracking authorized civilian identity profiles.</p>
+                </div>
+                <a href="@Url.Action("CreateUser", "Admin")" class="btn-add-cyber">
+                    <i class="fa-solid fa-user-plus"></i> Add New Citizen
+                </a>
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table class="cyber-table">
+                    <thead>
+                        <tr>
+                            <th>Avatar</th>
+                            <th>Citizen Name</th>
+                            <th>Email Address</th>
+                            <th>Mobile Number</th>
+                            <th>CNIC</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model == null || !Model.Any())
+                        {
+                            <tr>
+                                <td colspan="7" style="text-align:center; color:#6b7280; padding:40px;">No records found in CrimeVision database registry.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="citizen-thumb" style="border: 2px solid #06b6d4; background: rgba(255, 255, 255, 0.05);">
+                                            <i class="fa-solid fa-user" style="color: #06b6d4; font-size: 16px;"></i>
+                                        </div>
+                                    </td>
+                                    <td style="font-weight:600; color:#ffffff;">
+                                        @item.FullName
+                                    </td>
+                                    <td style="color:#e5e7eb;">
+                                        @item.Email
+                                    </td>
+                                    <td style="color:#e5e7eb;">
+                                        @item.PhoneNumber
+                                    </td>
+                                    <td style="letter-spacing:0.5px;">@item.CNIC</td>
+                                    <td>
+                                        @if (item.Status == "Active")
+                                        {
+                                            <span class="badge-status badge-active">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge-status badge-suspended">Suspended</span>
+                                        }
+                                    </td>
+                                    <td class="action-icons">
+                                        <a href="@Url.Action("EditUser", "Admin", new { id = item.Id })" title="Modify Context"><i class="fa-solid fa-pen-to-square" style="color:#a855f7;"></i></a>
+                                        <a href="@Url.Action("UserDetails", "Admin", new { id = item.Id })" title="View Profile"><i class="fa-solid fa-eye" style="color:#60a5fa;"></i></a>
+                                        <a href="@Url.Action("DeleteUser", "Admin", new { id = item.Id })" onclick="return confirm('Are you sure to revoke this citizen access?');" title="Deauthorize" style="margin-right:0;"><i class="fa-solid fa-trash" style="color:#f87171;"></i></a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+        </div></div>
