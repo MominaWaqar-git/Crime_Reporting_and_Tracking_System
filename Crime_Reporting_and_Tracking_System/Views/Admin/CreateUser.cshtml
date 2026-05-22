@@ -206,17 +206,17 @@
         <div class="grid-2">
             <div class="form-group">
                 <label asp-for="CNIC">CNIC Number (13 Digits)</label>
-                <input asp-for="CNIC" class="form-control" placeholder="e.g. 3740512345671" type="text" maxlength="13" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 13);" required />
+                <input asp-for="CNIC" class="form-control" placeholder="e.g. 3740512345671" type="text" minlength="13" maxlength="13" pattern="\d{13}" title="CNIC must be exactly 13 digits" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 13);" required />
                 <span asp-validation-for="CNIC" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="PhoneNumber">Mobile Number (11 Digits)</label>
-                <input asp-for="PhoneNumber" class="form-control" placeholder="e.g. 03001234567" type="text" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11);" />
+                <input asp-for="PhoneNumber" class="form-control" placeholder="e.g. 03001234567" type="text" minlength="11" maxlength="11" pattern="\d{11}" title="Phone number must be exactly 11 digits" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11);" required />
                 <span asp-validation-for="PhoneNumber" class="text-danger"></span>
             </div>
         </div>
 
-        <!-- === NAYI PASSWORD FIELDS (ADDED MATCHING THE THEME) === -->
+        <!-- === NAYI PASSWORD FIELDS === -->
         <div class="grid-2">
             <div class="form-group">
                 <label asp-for="Password">Account Password</label>
@@ -235,12 +235,11 @@
             <div class="file-upload-wrapper" onclick="document.getElementById('avatarUpload').click();">
                 <i class="fa-solid fa-cloud-arrow-up"></i>
                 <p id="uploadContainerText" style="margin: 0; color: #e5e7eb; font-size: 14px; font-weight: 500;">Click here to upload citizen avatar image</p>
-                <input type="file" id="avatarUpload" name="ProfilePicture" style="display: none;" accept="image/*" onchange="document.getElementById('uploadContainerText').innerHTML = 'Selected: <span style=\'color: #06b6d4;\'>' + this.files[0].name + '</span>';" />
+                <input type="file" id="avatarUpload" name="ProfilePicture" style="display: none;" accept="image/*" onchange="document.getElementById('uploadContainerText').innerHTML = 'Selected: <span style=\'color: #06b6d4;\'>' + this.files[0].name + '</span>';" required />
             </div>
         </div>
 
         <div class="action-row">
-            
             <a asp-action="Users" asp-controller="Admin" class="btn-back-cyber">
                 <i class="fa-solid fa-arrow-left"></i> Back to Registry
             </a>
