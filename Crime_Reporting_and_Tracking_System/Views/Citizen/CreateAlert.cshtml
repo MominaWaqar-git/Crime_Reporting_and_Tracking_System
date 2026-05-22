@@ -83,6 +83,20 @@
                     box-shadow: 0 0 10px rgba(37, 99, 235, 0.2);
                 }
 
+        .custom-date-input {
+            background-color: #333333; /* Agar background dark hai */
+            color: white;
+            border: 1px solid #555;
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+            /* Is se calendar ka sign (icon) white ho jayega */
+            .custom-date-input::-webkit-calendar-picker-indicator {
+                filter: invert(1);
+                cursor: pointer;
+            }
+
                 select option {
                     background: #0f172a;
                     color: white;

@@ -1,10 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
-using Microsoft.AspNetCore.Http;
+﻿using Crime_Reporting_and_Tracking_System.Data;
 using Crime_Reporting_and_Tracking_System.Models;
-using System.Collections.Generic;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Crime_Reporting_and_Tracking_System.Controllers
 {
@@ -12,12 +15,20 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
     {
         private readonly IConfiguration _configuration;
         private readonly string _connectionString;
+        private readonly ApplicationDbContext _context;
 
-        public AdminController(IConfiguration configuration)
+        public AdminController(IConfiguration configuration, ApplicationDbContext context)
         {
             _configuration = configuration;
+            _context = context;
             _connectionString = _configuration.GetConnectionString("CrimeDB")
                                 ?? "Server=(localdb)\\MSSQLLocalDB;Database=CrimeVisionDB;Trusted_Connection=True;MultipleActiveResultSets=true";
+        }
+
+        // Helper Method: DRY (Don't Repeat Yourself) principle ke liye session check function
+        private bool IsAdminAuthenticated()
+        {
+            return HttpContext.Session.GetString("Admin") != null;
         }
 
         // ==========================================
@@ -25,23 +36,17 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
         // ==========================================
         public IActionResult Dashboard()
         {
-            if (HttpContext.Session.GetString("Admin") == null)
-            {
-                return RedirectToAction("AdminLogin", "Account");
-            }
+            if (!IsAdminAuthenticated()) return RedirectToAction("AdminLogin", "Account");
             return View();
         }
 
         // ==========================================
-        // 2. CITIZENS REGISTRY LISTING (Main Page)
+        // 2. CITIZENS REGISTRY LISTING
         // ==========================================
         [HttpGet]
         public IActionResult Users()
         {
-            if (HttpContext.Session.GetString("Admin") == null)
-            {
-                return RedirectToAction("AdminLogin", "Account");
-            }
+            if (!IsAdminAuthenticated()) return RedirectToAction("AdminLogin", "Account");
 
             List<User> usersList = new List<User>();
 
@@ -78,23 +83,16 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
         [HttpGet]
         public IActionResult CreateUser()
         {
-            if (HttpContext.Session.GetString("Admin") == null)
-            {
-                return RedirectToAction("AdminLogin", "Account");
-            }
+            if (!IsAdminAuthenticated()) return RedirectToAction("AdminLogin", "Account");
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult AddUser(User user, IFormFile ProfilePicture)
+        public IActionResult CreateUser(User user, IFormFile ProfilePicture)
         {
-            if (HttpContext.Session.GetString("Admin") == null)
-            {
-                return RedirectToAction("AdminLogin", "Account");
-            }
+            if (!IsAdminAuthenticated()) return RedirectToAction("AdminLogin", "Account");
 
-            // Fallback default avatar profile management
             string imagePath = "uploads/default-avatar.png";
 
             if (ProfilePicture != null && ProfilePicture.Length > 0)
@@ -113,7 +111,7 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                 imagePath = "uploads/" + fileName;
             }
 
-            // FIX 1: Alag se unified single block use karein pre-existence verify karne ke liye
+            // Check if user already exists
             bool identityExists = false;
             string checkQuery = "SELECT COUNT(1) FROM [Users] WHERE CNIC = @CNIC OR Email = @Email";
 
@@ -126,21 +124,16 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
 
                     checkConn.Open();
                     int exists = Convert.ToInt32(checkCmd.ExecuteScalar());
-                    if (exists > 0)
-                    {
-                        identityExists = true;
-                    }
+                    if (exists > 0) identityExists = true;
                 }
             }
 
-            // FIX 2: Agar duplicate data hai toh error messaging pass karke form reload karein
             if (identityExists)
             {
-                ModelState.AddModelError("", "Security Alert: A profile matching this CNIC or Email structure already exists.");
-                return View("CreateUser", user);
+                ModelState.AddModelError("", "Security Alert: A profile matching this CNIC or Email already exists.");
+                return View(user);
             }
 
-            // FIX 3: Safe data push strategy execute karein
             try
             {
                 using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -174,7 +167,7 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                 {
                     ModelState.AddModelError("", "Data Server Link Error: " + ex.Message);
                 }
-                return View("CreateUser", user);
+                return View(user);
             }
 
             return RedirectToAction("Users");
@@ -186,10 +179,7 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
         [HttpGet]
         public IActionResult EditUser(int id)
         {
-            if (HttpContext.Session.GetString("Admin") == null)
-            {
-                return RedirectToAction("AdminLogin", "Account");
-            }
+            if (!IsAdminAuthenticated()) return RedirectToAction("AdminLogin", "Account");
 
             User user = new User();
 
@@ -222,10 +212,7 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult EditUser(User user, IFormFile NewProfilePicture)
         {
-            if (HttpContext.Session.GetString("Admin") == null)
-            {
-                return RedirectToAction("AdminLogin", "Account");
-            }
+            if (!IsAdminAuthenticated()) return RedirectToAction("AdminLogin", "Account");
 
             string imagePath = string.IsNullOrEmpty(user.ProfileImage) ? "uploads/default-avatar.png" : user.ProfileImage;
 
@@ -267,10 +254,7 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
         [HttpGet]
         public IActionResult UserDetails(int id)
         {
-            if (HttpContext.Session.GetString("Admin") == null)
-            {
-                return RedirectToAction("AdminLogin", "Account");
-            }
+            if (!IsAdminAuthenticated()) return RedirectToAction("AdminLogin", "Account");
 
             User user = new User();
 
@@ -305,10 +289,7 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
         [HttpGet]
         public IActionResult DeleteUser(int id)
         {
-            if (HttpContext.Session.GetString("Admin") == null)
-            {
-                return RedirectToAction("AdminLogin", "Account");
-            }
+            if (!IsAdminAuthenticated()) return RedirectToAction("AdminLogin", "Account");
 
             using (SqlConnection con = new SqlConnection(_connectionString))
             {
@@ -329,10 +310,7 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
         [HttpGet]
         public IActionResult CrimeReports()
         {
-            if (HttpContext.Session.GetString("Admin") == null)
-            {
-                return RedirectToAction("AdminLogin", "Account");
-            }
+            if (!IsAdminAuthenticated()) return RedirectToAction("AdminLogin", "Account");
 
             List<dynamic> allComplaints = new List<dynamic>();
 
@@ -375,10 +353,7 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult ApproveComplaint(int id)
         {
-            if (HttpContext.Session.GetString("Admin") == null)
-            {
-                return RedirectToAction("AdminLogin", "Account");
-            }
+            if (!IsAdminAuthenticated()) return RedirectToAction("AdminLogin", "Account");
 
             using (SqlConnection con = new SqlConnection(_connectionString))
             {
@@ -391,6 +366,74 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                 }
             }
             return RedirectToAction("CrimeReports");
+        }
+
+        // ==========================================
+        // 8. PUBLIC ALERTS MANAGEMENT
+        // ==========================================
+        [HttpGet]
+        public IActionResult AlertsList()
+        {
+            if (!IsAdminAuthenticated()) return RedirectToAction("AdminLogin", "Account");
+
+            var alerts = _context.PublicAlerts.OrderByDescending(a => a.DateCreated).ToList();
+            return View(alerts);
+        }
+
+        [HttpGet]
+        public IActionResult CreateAlert()
+        {
+            if (!IsAdminAuthenticated()) return RedirectToAction("AdminLogin", "Account");
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CreateAlert(PublicAlert model, IFormFile AlertAttachment)
+        {
+            if (!IsAdminAuthenticated()) return RedirectToAction("AdminLogin", "Account");
+
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    if (AlertAttachment != null && AlertAttachment.Length > 0)
+                    {
+                        string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+                        if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+
+                        string uniqueFileName = Guid.NewGuid().ToString() + "_" + AlertAttachment.FileName;
+                        string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        {
+                            AlertAttachment.CopyTo(fileStream);
+                        }
+
+                        model.AttachmentPath = "uploads/" + uniqueFileName;
+                    }
+                    else
+                    {
+                        model.AttachmentPath = null;
+                    }
+
+                    model.DateCreated = DateTime.Now;
+
+                    _context.PublicAlerts.Add(model);
+                    _context.SaveChanges();
+
+                    TempData["SuccessMessage"] = "Public security alert broadcasted successfully!";
+                    return RedirectToAction("AlertsList");
+                }
+
+                ViewBag.ErrorMessage = "Validation failed. Please fill all required fields correctly.";
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = "An error occurred while storing the alert: " + ex.Message;
+            }
+
+            return View(model);
         }
     }
 }

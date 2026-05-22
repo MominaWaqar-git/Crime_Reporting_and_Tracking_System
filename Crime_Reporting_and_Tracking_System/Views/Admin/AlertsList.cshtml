@@ -1,0 +1,214 @@
+﻿@model IEnumerable<Crime_Reporting_and_Tracking_System.Models.PublicAlert>
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Public Security Alerts Registry";
+}
+
+<style>
+    /* Premium Futuristic Container matching exact theme */
+    .registry-wrapper {
+        max-width: 1100px;
+        margin: 20px auto;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 24px;
+        padding: 40px;
+        backdrop-filter: blur(25px);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+        position: relative;
+        overflow: hidden;
+    }
+
+        .registry-wrapper::before {
+            content: '';
+            position: absolute;
+            top: -150px;
+            right: -150px;
+            width: 300px;
+            height: 300px;
+            background: rgba(239, 68, 68, 0.12); /* Crimson cyber glow */
+            filter: blur(100px);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+    .registry-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+    }
+
+    .cyber-table-container {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .cyber-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
+
+        .cyber-table th {
+            color: #f87171; /* Alert theme coral red */
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .cyber-table td {
+            padding: 16px;
+            color: #f3f4f6;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .cyber-table tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+    /* Badge Levels */
+    .badge-alert {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .badge-critical {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+
+    .badge-high {
+        background: rgba(249, 115, 22, 0.2);
+        color: #f97316;
+        border: 1px solid rgba(249, 115, 22, 0.4);
+    }
+
+    .badge-medium {
+        background: rgba(234, 179, 8, 0.2);
+        color: #eab308;
+        border: 1px solid rgba(234, 179, 8, 0.4);
+    }
+
+    .badge-low {
+        background: rgba(59, 130, 246, 0.2);
+        color: #3b82f6;
+        border: 1px solid rgba(59, 130, 246, 0.4);
+    }
+
+    /* Premium Button Style */
+    .btn-create-cyber {
+        background: linear-gradient(90deg, #dc2626 0%, #ef4444 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 12px 24px;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+        .btn-create-cyber:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.5);
+        }
+
+    .status-success {
+        padding: 14px;
+        border-radius: 12px;
+        font-size: 13px;
+        margin-bottom: 20px;
+        background: rgba(16, 185, 129, 0.1);
+        color: #34d399;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+</style>
+
+<div class="registry-wrapper">
+    <div class="registry-header">
+        <div>
+            <h3 style="color: white; margin: 0 0 6px 0; font-weight: 600; font-size: 22px;">Public Security Alerts</h3>
+            <p style="color: #9ca3af; font-size: 14px; margin: 0;">Active security broadcasts currently deployed on the civilian network.</p>
+        </div>
+        <div>
+            <!-- Button to open the Create Alert Page -->
+            <a asp-action="CreateAlert" asp-controller="Admin" class="btn-create-cyber">
+                <i class="fa-solid fa-plus"></i> Create New Alert
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="status-success">
+            <i class="fa-solid fa-circle-check" style="margin-right: 6px;"></i> @TempData["SuccessMessage"]
+        </div>
+    }
+
+    <div class="cyber-table-container">
+        <table class="cyber-table">
+            <thead>
+                <tr>
+                    <th>Alert Title</th>
+                    <th>Alert Level</th>
+                    <th>Location</th>
+                    <th>Date Created</th>
+                    <th>Image</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var alert in Model)
+                    {
+                        <tr>
+                            <td style="font-weight: 500;">@alert.Title</td>
+                            <td>
+                                <span class="badge-alert @(alert.AlertLevel == "Critical" ? "badge-critical" : alert.AlertLevel == "High" ? "badge-high" : alert.AlertLevel == "Medium" ? "badge-medium" : "badge-low")">
+                                    @alert.AlertLevel
+                                </span>
+                            </td>
+                            <td>@alert.Location</td>
+                            <td>@alert.DateCreated?.ToString("dd MMM yyyy, hh:mm tt")</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(alert.AttachmentPath))
+                                {
+                                    <span style="color: #34d399;"><i class="fa-solid fa-image"></i> Attached</span>
+                                }
+                                else
+                                {
+                                    <span style="color: #64748b;">No Image</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #9ca3af; padding: 30px;">
+                            No active public security alerts found in the database.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

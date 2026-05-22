@@ -171,13 +171,20 @@
     <div class="container">
         <div class="sidebar">
             <div class="menu">
-                <a href="@Url.Action("Dashboard", "Admin")" class="@(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")">
-                    <i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span>
+                <a class="active" href="#"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+                <a href="/Admin/CrimeReports" class=""><i class="fa-solid fa-file"></i> Crime Reports</a>
+                <a href="/Admin/Users"><i class="fa-solid fa-users"></i> Users</a>
+                <a href="/Officers" class="nav-link"><i class="fa-solid fa-users"></i> Officers</a>
+
+                <!-- === PUBLIC ALERT LINK (FIXED & MATCHED) === -->
+                <a asp-action="AlertsList" asp-controller="Admin" class="">
+                    <i class="fa-solid fa-triangle-exclamation" style="color: #ffffff; margin-right: 8px;"></i> Broadcast Alert
                 </a>
-                <a href="#"><i class="fa-solid fa-file"></i> Crime Reports</a>
-                <a href="@Url.Action("Users", "Admin")" class="@(ViewContext.RouteData.Values["action"]?.ToString() == "Users" ? "active" : "")"><i class="fa-solid fa-users"></i> Users</a>
-                <a href="@Url.Action("Index", "Officers")" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Officers" ? "active" : "")"><i class="fa-solid fa-user-shield"></i> Officers</a>
-                <a href="@Url.Action("AdminLogin", "Account")"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+
+                <!-- === LOGOUT LINK === -->
+                <a href="@Url.Action("AdminLogin", "Account")">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </a>
             </div>
         </div>
 
