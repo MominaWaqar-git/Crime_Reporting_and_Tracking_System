@@ -1,3 +1,3 @@
 ﻿Use CrimeVisionDB;
 Go
-SELECT COUNT(*) AS TotalRows FROM Officers;
+ALTER TABLE Users ADD ProfileImage VARCHAR(MAX) NULL;

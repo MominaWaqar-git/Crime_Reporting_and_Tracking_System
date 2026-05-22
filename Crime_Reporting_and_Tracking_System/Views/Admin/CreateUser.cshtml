@@ -84,15 +84,18 @@
     }
 
     @@media (max-width: 600px) {
-        .grid-2 {
-            grid-template-columns: 1fr;
-            gap: 0;
-        }
+        .grid-2
 
-        .action-row {
-            flex-direction: column;
-            gap: 15px;
-        }
+    {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .action-row {
+        flex-direction: column;
+        gap: 15px;
+    }
+
     }
 
     .file-upload-wrapper {
@@ -213,6 +216,20 @@
             </div>
         </div>
 
+        <!-- === NAYI PASSWORD FIELDS (ADDED MATCHING THE THEME) === -->
+        <div class="grid-2">
+            <div class="form-group">
+                <label asp-for="Password">Account Password</label>
+                <input asp-for="Password" type="password" class="form-control" placeholder="••••••••" required />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label>Confirm Password</label>
+                <input type="password" id="confirmPassword" class="form-control" placeholder="••••••••" required />
+                <span id="passwordMatchError" class="text-danger" style="display:none;">Passwords do not match!</span>
+            </div>
+        </div>
+
         <div class="form-group">
             <label>Citizen Profile Biometric Photo</label>
             <div class="file-upload-wrapper" onclick="document.getElementById('avatarUpload').click();">
@@ -223,10 +240,11 @@
         </div>
 
         <div class="action-row">
-            <a href="@Url.Action("Users", "Admin")" class="btn-back-cyber">
+            
+            <a asp-action="Users" asp-controller="Admin" class="btn-back-cyber">
                 <i class="fa-solid fa-arrow-left"></i> Back to Registry
             </a>
-            <button type="submit" class="btn-submit-cyber">
+            <button type="submit" class="btn-submit-cyber" id="submitBtn">
                 <i class="fa-solid fa-user-shield"></i> Authorize & Register Citizen
             </button>
         </div>
@@ -235,4 +253,27 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <!-- Real-time Password Matching Validation Script -->
+    <script>
+        const password = document.querySelector('input[name="Password"]');
+        const confirmPassword = document.getElementById('confirmPassword');
+        const errorSpan = document.getElementById('passwordMatchError');
+        const submitBtn = document.getElementById('submitBtn');
+
+        function validatePassword() {
+            if (password.value !== confirmPassword.value && confirmPassword.value !== "") {
+                errorSpan.style.display = 'block';
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.5';
+            } else {
+                errorSpan.style.display = 'none';
+                submitBtn.disabled = false;
+                submitBtn.style.opacity = '1';
+            }
+        }
+
+        password.addEventListener('keyup', validatePassword);
+        confirmPassword.addEventListener('keyup', validatePassword);
+    </script>
 }

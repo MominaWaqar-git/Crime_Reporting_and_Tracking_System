@@ -4,6 +4,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
+using System.IO; // 💡 File handling ke liye zaroori hai
 
 namespace Crime_Reporting_and_Tracking_System.Controllers
 {
@@ -118,23 +119,53 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
         // 🔵 USER SUBMISSION METHODS (DATABASE BACKED)
         // ==============================================================
 
-        // When user submits the registration form (POST)
+        // 🛠️ CHANGED: IFormFile ProfileImageFile parameter add kiya aur file saving logic implement ki
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult UserRegister(string FullName, string Email, string CNIC, string PhoneNumber, string Password)
+        public IActionResult UserRegister(string FullName, string Email, string CNIC, string PhoneNumber, string Password, IFormFile ProfileImageFile)
         {
             string conString = _configuration.GetConnectionString("CrimeDB");
+            string imagePath = "uploads/default-avatar.png"; // Default fallback agar user image select na kare
+
+            // 📸 Checking if user has uploaded a profile picture
+            if (ProfileImageFile != null && ProfileImageFile.Length > 0)
+            {
+                // Unique filename using Guid to avoid overwriting
+                string fileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(ProfileImageFile.FileName);
+
+                // wwwroot/uploads directory target setup
+                string uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+
+                // Creates directory if it doesn't exist
+                if (!Directory.Exists(uploadFolder))
+                {
+                    Directory.CreateDirectory(uploadFolder);
+                }
+
+                string fullPath = Path.Combine(uploadFolder, fileName);
+
+                // Saving image file stream to server disk
+                using (var stream = new FileStream(fullPath, FileMode.Create))
+                {
+                    ProfileImageFile.CopyTo(stream);
+                }
+
+                // Short relative path for DB persistence
+                imagePath = "uploads/" + fileName;
+            }
 
             using (SqlConnection con = new SqlConnection(conString))
             {
-                string query = "INSERT INTO Users (FullName, Email, CNIC, PhoneNumber, Password) VALUES (@name, @email, @cnic, @phone, @pass)";
+                // ProfileImage column ko insert query mein add kiya gaya hai
+                string query = "INSERT INTO Users (FullName, Email, CNIC, PhoneNumber, Password, ProfileImage) VALUES (@name, @email, @cnic, @phone, @pass, @img)";
                 using (SqlCommand cmd = new SqlCommand(query, con))
                 {
                     cmd.Parameters.AddWithValue("@name", FullName ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@email", Email ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@cnic", CNIC ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@phone", PhoneNumber ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@pass", Password); // Real life projects mein hashing use hoti hai
+                    cmd.Parameters.AddWithValue("@pass", Password);
+                    cmd.Parameters.AddWithValue("@img", imagePath); // Image path database mein save ho raha hai
 
                     con.Open();
                     cmd.ExecuteNonQuery();
@@ -168,6 +199,10 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                             HttpContext.Session.SetString("UserName", reader["FullName"].ToString());
                             HttpContext.Session.SetString("UserPhone", reader["PhoneNumber"].ToString());
                             HttpContext.Session.SetString("UserEmail", reader["Email"].ToString());
+
+                            // 💡 ADDED: Login ke waqt hi image path session mein save kar liya takay dashboard/navbar par direct show ho sake
+                            string dbImage = reader["ProfileImage"] != DBNull.Value ? reader["ProfileImage"].ToString() : "";
+                            HttpContext.Session.SetString("UserProfileImage", string.IsNullOrEmpty(dbImage) ? "uploads/default-avatar.png" : dbImage);
 
                             return RedirectToAction("CitizenDashboard", "Account");
                         }
@@ -420,19 +455,14 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
         public IActionResult ProfileSettings()
         {
             string userEmail = HttpContext.Session.GetString("UserEmail");
-            if (string.IsNullOrEmpty(userEmail))
-            {
-                return RedirectToAction("UserLogin");
-            }
+            if (string.IsNullOrEmpty(userEmail)) return RedirectToAction("UserLogin");
 
             string conString = _configuration.GetConnectionString("CrimeDB");
-
-            // 1. Khali User model object banaya
             User user = new User();
 
             using (SqlConnection con = new SqlConnection(conString))
             {
-                string query = "SELECT FullName, Email, CNIC, PhoneNumber FROM Users WHERE Email = @email";
+                string query = "SELECT FullName, Email, CNIC, PhoneNumber, ProfileImage FROM Users WHERE Email = @email";
                 SqlCommand cmd = new SqlCommand(query, con);
                 cmd.Parameters.AddWithValue("@email", userEmail);
 
@@ -441,35 +471,67 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                 {
                     if (reader.Read())
                     {
-                        // 2. Direct model object ke andar data assign kiya
                         user.FullName = reader["FullName"].ToString();
                         user.Email = reader["Email"].ToString();
                         user.CNIC = reader["CNIC"].ToString();
                         user.PhoneNumber = reader["PhoneNumber"] != DBNull.Value ? reader["PhoneNumber"].ToString() : "";
+
+                        string dbImage = reader["ProfileImage"] != DBNull.Value ? reader["ProfileImage"].ToString() : "";
+                        user.ProfileImage = string.IsNullOrEmpty(dbImage) ? "uploads/default-avatar.png" : dbImage;
                     }
                 }
             }
 
-            // 3. Model object ko cleanly view ke sath bhej diya
             return View("~/Views/Citizen/ProfileSettings.cshtml", user);
         }
 
         [HttpPost]
-        public IActionResult UpdateProfile(string FullName, string Email, string PhoneNumber)
+        public IActionResult UpdateProfile(string FullName, string Email, string PhoneNumber, IFormFile ProfileImageFile)
         {
             string userEmail = HttpContext.Session.GetString("UserEmail");
             if (string.IsNullOrEmpty(userEmail)) return RedirectToAction("UserLogin");
 
             string conString = _configuration.GetConnectionString("CrimeDB");
+            string imagePath = null;
+
+            if (ProfileImageFile != null && ProfileImageFile.Length > 0)
+            {
+                string fileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(ProfileImageFile.FileName);
+                string uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+
+                if (!Directory.Exists(uploadFolder))
+                {
+                    Directory.CreateDirectory(uploadFolder);
+                }
+
+                string fullPath = Path.Combine(uploadFolder, fileName);
+
+                using (var stream = new FileStream(fullPath, FileMode.Create))
+                {
+                    ProfileImageFile.CopyTo(stream);
+                }
+
+                imagePath = "uploads/" + fileName;
+            }
 
             using (SqlConnection con = new SqlConnection(conString))
             {
-                string query = "UPDATE Users SET FullName = @name, Email = @newEmail, PhoneNumber = @phone WHERE Email = @oldEmail";
+                string query = "UPDATE Users SET FullName = @name, Email = @newEmail, PhoneNumber = @phone";
+                if (imagePath != null)
+                {
+                    query += ", ProfileImage = @img";
+                }
+                query += " WHERE Email = @oldEmail";
+
                 SqlCommand cmd = new SqlCommand(query, con);
                 cmd.Parameters.AddWithValue("@name", FullName);
                 cmd.Parameters.AddWithValue("@newEmail", Email);
                 cmd.Parameters.AddWithValue("@phone", (object)PhoneNumber ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@oldEmail", userEmail);
+                if (imagePath != null)
+                {
+                    cmd.Parameters.AddWithValue("@img", imagePath);
+                }
 
                 con.Open();
                 int rows = cmd.ExecuteNonQuery();
@@ -477,6 +539,10 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                 {
                     HttpContext.Session.SetString("UserEmail", Email);
                     HttpContext.Session.SetString("UserName", FullName);
+                    if (imagePath != null)
+                    {
+                        HttpContext.Session.SetString("UserProfileImage", imagePath);
+                    }
                     TempData["SuccessMessage"] = "Profile details updated successfully!";
                 }
                 else

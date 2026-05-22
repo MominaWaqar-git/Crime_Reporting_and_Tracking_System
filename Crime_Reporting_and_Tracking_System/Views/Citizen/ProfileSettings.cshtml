@@ -210,6 +210,34 @@
                     gap: 8px;
                 }
 
+            /* 🛠️ PROFILE IMAGE STYLES */
+            .avatar-section {
+                display: flex;
+                align-items: center;
+                gap: 25px;
+                margin-bottom: 25px;
+                padding-bottom: 20px;
+                border-bottom: 1px solid rgba(255,255,255,0.06);
+            }
+
+            .avatar-wrapper {
+                position: relative;
+                width: 110px;
+                height: 110px;
+                border-radius: 50%;
+                padding: 3px;
+                background: linear-gradient(45deg, var(--blue), var(--purple));
+                box-shadow: 0 0 15px rgba(147, 51, 234, 0.3);
+            }
+
+            .avatar-wrapper img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                border-radius: 50%;
+                background: #0d1117;
+            }
+
             /* FORM INPUT STYLES */
             .form-grid {
                 display: grid;
@@ -335,7 +363,23 @@
 
             <div class="settings-box">
                 <h3><i class="fa-solid fa-user-pen"></i> Account Information</h3>
-                <form asp-action="UpdateProfile" method="post">
+                
+                <!-- 🛠️ enctype add kiya image file transfer ke liye -->
+                <form asp-action="UpdateProfile" method="post" enctype="multipart/form-data">
+                    
+                    <!-- 🛠️ Profile Image Row (With Default Value Fallback) -->
+                    <div class="avatar-section">
+                        <div class="avatar-wrapper">
+                            <img src="~/@(string.IsNullOrEmpty(Model.ProfileImage) ? "uploads/default-avatar.png" : Model.ProfileImage)" 
+                                 id="avatarPreview" 
+                                 alt="Profile Picture" />
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Profile Picture</label>
+                            <input type="file" name="ProfileImageFile" id="imageUploader" class="form-control" accept="image/*" />
+                        </div>
+                    </div>
+
                     <div class="form-grid">
                         <div class="form-group">
                             <label>Full Name</label>
@@ -391,6 +435,16 @@
     <div class="footer">
         © 2026 CrimeVision | Smart Crime Reporting & Tracking System
     </div>
+
+    <!-- 🛠️ JavaScript: Live preview functionality -->
+    <script>
+        document.getElementById('imageUploader').addEventListener('change', function (event) {
+            const [file] = this.files;
+            if (file) {
+                document.getElementById('avatarPreview').src = URL.createObjectURL(file);
+            }
+        });
+    </script>
 
 </body>
 </html>

@@ -9,14 +9,13 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
 {
     public class AdminController : Controller
     {
-        // === CONNECTION STRING (ESTABLISHES DATABASE CONNECTION) ===
+        // === CONNECTION STRING ===
         private readonly string _connectionString = "Server=(localdb)\\MSSQLLocalDB;Database=CrimeVisionDB;Trusted_Connection=True;MultipleActiveResultSets=true";
 
-        // === ORIGINAL CODE (DO NOT MODIFY) ===
+        // === DASHBOARD ===
         public IActionResult Dashboard()
         {
             var admin = HttpContext.Session.GetString("Admin");
-
             if (admin == null)
             {
                 return RedirectToAction("AdminLogin", "Account");
@@ -24,12 +23,10 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
 
             return View();
         }
-        // =============================================
 
+        // === USERS SECTION ===
 
-        // === NEW USERS CODE (ADDED SEPARATELY BELOW) ===
-
-        // 1. Action method to display the list of users
+        // 1. Display list of users
         public IActionResult Users()
         {
             var admin = HttpContext.Session.GetString("Admin");
@@ -42,7 +39,8 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
 
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                string query = "SELECT Id, FullName, Email, CNIC, PhoneNumber, Status FROM Users";
+                // 🛠️ Error 1 Fixed: [Users] table name ko brackets mein kiya taake SQL syntax error na aaye
+                string query = "SELECT Id, FullName, Email, CNIC, PhoneNumber, Status FROM [Users]";
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     conn.Open();
@@ -53,11 +51,11 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                             usersList.Add(new User
                             {
                                 Id = Convert.ToInt32(dr["Id"]),
-                                FullName = dr["FullName"].ToString(),
-                                Email = dr["Email"].ToString(),
-                                CNIC = dr["CNIC"].ToString(),
+                                FullName = dr["FullName"] != DBNull.Value ? dr["FullName"].ToString() : "",
+                                Email = dr["Email"] != DBNull.Value ? dr["Email"].ToString() : "",
+                                CNIC = dr["CNIC"] != DBNull.Value ? dr["CNIC"].ToString() : "",
                                 PhoneNumber = dr["PhoneNumber"] != DBNull.Value ? dr["PhoneNumber"].ToString() : "",
-                                Status = dr["Status"].ToString()
+                                Status = dr["Status"] != DBNull.Value ? dr["Status"].ToString() : ""
                             });
                         }
                     }
@@ -67,30 +65,7 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
             return View(usersList);
         }
 
-        // 2. Saves data to the database when the user submits the form
-        [HttpPost]
-        public IActionResult AddUser(User user)
-        {
-            using (SqlConnection conn = new SqlConnection(_connectionString))
-            {
-                string query = "INSERT INTO Users (FullName, Email, CNIC, PhoneNumber, Status) VALUES (@FullName, @Email, @CNIC, @PhoneNumber, 'Active')";
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    cmd.Parameters.AddWithValue("@FullName", user.FullName);
-                    cmd.Parameters.AddWithValue("@Email", user.Email);
-                    cmd.Parameters.AddWithValue("@CNIC", user.CNIC);
-                    cmd.Parameters.AddWithValue("@PhoneNumber", user.PhoneNumber ?? (object)DBNull.Value);
-
-                    conn.Open();
-                    cmd.ExecuteNonQuery();
-                }
-            }
-
-            // Successfully saves and takes the admin back to the registry list
-            return RedirectToAction("Users");
-        }
-
-        // 3. Opens the dynamic registration form view page for inputting citizen data
+        // 2. Open registration form
         [HttpGet]
         public IActionResult CreateUser()
         {
@@ -103,9 +78,46 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
             return View();
         }
 
-        // ==============================================================
-        // 🚨 FIXED & CLEANED: CRIME REPORTS METHOD (SINGLE BLOCK)
-        // ==============================================================
+        // 3. Save submitted user data
+        [HttpPost]
+        public IActionResult AddUser(User user)
+        {
+            var admin = HttpContext.Session.GetString("Admin");
+            if (admin == null)
+            {
+                return RedirectToAction("AdminLogin", "Account");
+            }
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                // 🛠️ Error 1 Fixed: Table name secured [Users]
+                string query = "INSERT INTO [Users] (FullName, Email, CNIC, PhoneNumber, Status, Password) VALUES (@FullName, @Email, @CNIC, @PhoneNumber, 'Active', @Password)";
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@FullName", user.FullName ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Email", user.Email ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@CNIC", user.CNIC ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@PhoneNumber", user.PhoneNumber ?? (object)DBNull.Value);
+
+                    // 🛠️ Error 2 Fixed: Password binding double-check safety block
+                    string securePassword = "Default@123";
+                    if (user != null && !string.IsNullOrEmpty(user.Password))
+                    {
+                        securePassword = user.Password;
+                    }
+                    cmd.Parameters.AddWithValue("@Password", securePassword);
+
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                }
+            }
+
+            return RedirectToAction("Users");
+        }
+
+
+        // === CRIME REPORTS SECTION ===
+
         [HttpGet]
         public IActionResult CrimeReports()
         {
@@ -130,13 +142,21 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                         {
                             var complaint = new System.Dynamic.ExpandoObject() as IDictionary<string, object>;
                             complaint.Add("ID", reader["ID"]);
-                            complaint.Add("CrimeType", reader["CrimeType"].ToString());
-                            complaint.Add("IncidentDate", Convert.ToDateTime(reader["IncidentDate"]).ToString("dd/MM/yyyy"));
-                            complaint.Add("Location", reader["Location"].ToString());
-                            complaint.Add("Status", reader["Status"].ToString());
-                            complaint.Add("Description", reader["Description"].ToString());
 
-                            // Database ke naye columns ka data safely read ho raha hai
+                            // 🛠️ Error 3 Fixed: Har string column ko DBNull check ke sath safely read kiya hai
+                            complaint.Add("CrimeType", reader["CrimeType"] != DBNull.Value ? reader["CrimeType"].ToString() : "N/A");
+
+                            // Safe Date Conversion
+                            string formattedDate = reader["IncidentDate"] != DBNull.Value
+                                ? Convert.ToDateTime(reader["IncidentDate"]).ToString("dd/MM/yyyy")
+                                : "N/A";
+                            complaint.Add("IncidentDate", formattedDate);
+
+                            complaint.Add("Location", reader["Location"] != DBNull.Value ? reader["Location"].ToString() : "N/A");
+                            complaint.Add("Status", reader["Status"] != DBNull.Value ? reader["Status"].ToString() : "Pending");
+                            complaint.Add("Description", reader["Description"] != DBNull.Value ? reader["Description"].ToString() : "");
+
+                            // Safe reading for newer columns
                             complaint.Add("FullName", reader["CitizenName"] != DBNull.Value ? reader["CitizenName"].ToString() : "Anonymous");
                             complaint.Add("PhoneNumber", reader["CitizenPhone"] != DBNull.Value ? reader["CitizenPhone"].ToString() : "N/A");
 

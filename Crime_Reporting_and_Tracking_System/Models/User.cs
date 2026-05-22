@@ -20,5 +20,10 @@ namespace Crime_Reporting_and_Tracking_System.Models
         public string PhoneNumber { get; set; }
 
         public string Status { get; set; } = "Active";
+
+        
+        public string Password { get; set; }
+
+        public string ProfileImage { get; set; }
     }
 }

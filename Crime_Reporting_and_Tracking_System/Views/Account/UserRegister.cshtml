@@ -1,4 +1,5 @@
-﻿@{
+﻿@model Crime_Reporting_and_Tracking_System.Models.User
+@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -9,147 +10,189 @@
     <title>Create Citizen Profile - CrimeVision</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-            body {
-                margin: 0;
-                padding: 0;
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
-                color: #ffffff;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                min-height: 100vh;
-                padding: 20px 0;
-                box-sizing: border-box;
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 40px 0;
+            box-sizing: border-box;
+        }
+
+        .register-container {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(20px);
+            box-sizing: border-box;
+        }
+
+        .brand-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .brand-logo {
+            font-size: 26px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 6px;
+        }
+
+            .brand-logo span {
+                color: #06b6d4;
             }
 
-            .register-container {
-                background: rgba(15, 23, 42, 0.6);
-                border: 1px solid rgba(255, 255, 255, 0.05);
-                border-radius: 24px;
-                padding: 40px;
+        .brand-subtitle {
+            color: #9ca3af;
+            font-size: 13px;
+            margin: 0;
+        }
+
+        /* 🛠️ NEW AVATAR UPLOAD STYLES */
+        .avatar-upload-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 25px;
+            grid-column: span 2;
+        }
+
+        .avatar-preview-wrapper {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            padding: 3px;
+            background: linear-gradient(135deg, #06b6d4 0%, #2563eb 100%);
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+            margin-bottom: 12px;
+        }
+
+            .avatar-preview-wrapper img {
                 width: 100%;
-                max-width: 500px;
-                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-                backdrop-filter: blur(20px);
-                box-sizing: border-box;
+                height: 100%;
+                object-fit: cover;
+                border-radius: 50%;
+                background: #1e293b;
             }
 
-            .brand-header {
-                text-align: center;
-                margin-bottom: 25px;
-            }
+        .avatar-hint {
+            font-size: 11px;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
 
-            .brand-logo {
-                font-size: 26px;
-                font-weight: 700;
-                color: #ffffff;
-                margin-bottom: 6px;
-            }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
 
-                .brand-logo span {
-                    color: #06b6d4;
-                }
+        .full-width {
+            grid-column: span 2;
+        }
 
-            .brand-subtitle {
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+            .form-group label {
+                display: block;
                 color: #9ca3af;
-                font-size: 13px;
-                margin: 0;
-            }
-
-            .form-grid {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 15px;
-            }
-
-            .full-width {
-                grid-column: span 2;
-            }
-
-            .form-group {
-                margin-bottom: 18px;
-            }
-
-                .form-group label {
-                    display: block;
-                    color: #9ca3af;
-                    font-size: 11px;
-                    margin-bottom: 6px;
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
-                }
-
-            .input-wrapper {
-                position: relative;
-            }
-
-                .input-wrapper i {
-                    position: absolute;
-                    left: 15px;
-                    top: 50%;
-                    transform: translateY(-50%);
-                    color: #06b6d4;
-                    font-size: 14px;
-                }
-
-            .form-control {
-                width: 100%;
-                background: rgba(255, 255, 255, 0.03);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 12px;
-                padding: 12px 15px 12px 42px;
-                color: #ffffff;
-                font-size: 14px;
-                outline: none;
-                transition: all 0.3s ease;
-                box-sizing: border-box;
-            }
-
-                .form-control:focus {
-                    border-color: #06b6d4;
-                    box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
-                }
-
-            .btn-register {
-                width: 100%;
-                background: linear-gradient(90deg, #06b6d4 0%, #2563eb 100%);
-                color: white;
-                border: none;
-                border-radius: 12px;
-                padding: 14px;
-                font-size: 14px;
-                font-weight: 600;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
+                font-size: 11px;
+                margin-bottom: 6px;
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
-                margin-top: 10px;
             }
 
-                .btn-register:hover {
-                    transform: translateY(-1px);
-                    box-shadow: 0 6px 20px rgba(6, 182, 212, 0.5);
-                }
+        .input-wrapper {
+            position: relative;
+        }
 
-            .switch-prompt {
-                text-align: center;
-                margin-top: 20px;
-                font-size: 13px;
-                color: #9ca3af;
-                grid-column: span 2;
+            .input-wrapper i {
+                position: absolute;
+                left: 15px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #06b6d4;
+                font-size: 14px;
             }
 
-                .switch-prompt a {
-                    color: #06b6d4;
-                    text-decoration: none;
-                    font-weight: 600;
-                }
+        .form-control {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px 15px 12px 42px;
+            color: #ffffff;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
 
-                    .switch-prompt a:hover {
-                        text-decoration: underline;
-                    }
+            /* Custom padding for file input icon adjustment */
+            .form-control[type="file"] {
+                padding: 10px 15px 10px 42px;
+                cursor: pointer;
+            }
+
+            .form-control:focus {
+                border-color: #06b6d4;
+                box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
+            }
+
+        .btn-register {
+            width: 100%;
+            background: linear-gradient(90deg, #06b6d4 0%, #2563eb 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 10px;
+        }
+
+            .btn-register:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 6px 20px rgba(6, 182, 212, 0.5);
+            }
+
+        .switch-prompt {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #9ca3af;
+            grid-column: span 2;
+        }
+
+            .switch-prompt a {
+                color: #06b6d4;
+                text-decoration: none;
+                font-weight: 600;
+            }
+
+                .switch-prompt a:hover {
+                    text-decoration: underline;
+                }
     </style>
 </head>
 <body>
@@ -160,7 +203,8 @@
             <p class="brand-subtitle">Create your secure decentralized civilian profile</p>
         </div>
 
-        <form action="@Url.Action("UserRegister", "Account")" method="post">
+        <!-- 🛠️ enctype add kiya image file stream transfer ke liye -->
+        <form action="@Url.Action("UserRegister", "Account")" method="post" enctype="multipart/form-data">
             @Html.AntiForgeryToken()
 
             @if (ViewBag.Error != null)
@@ -171,7 +215,20 @@
             }
 
             <div class="form-grid">
-            
+
+                <!-- 🛠️ Profile Image Section with Live Preview Box -->
+                <div class="avatar-upload-container">
+                    <div class="avatar-preview-wrapper">
+                        <!-- Default anonymous icon avatar set ki hai -->
+                        <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" id="avatarPreview" alt="Profile Preview" />
+                    </div>
+                    <span class="avatar-hint">Upload Profile Picture</span>
+                    <div class="input-wrapper" style="width: 100%;">
+                        <i class="fa-solid fa-camera"></i>
+                        <input type="file" name="ProfileImageFile" id="imageUploader" class="form-control" accept="image/*" />
+                    </div>
+                </div>
+
                 <div class="form-group full-width">
                     <label>Full Identity Name</label>
                     <div class="input-wrapper">
@@ -221,5 +278,15 @@
             Already registered? <a href="@Url.Action("UserLogin", "Account")">Login Here</a>
         </div>
     </div>
+
+    <!-- 🛠️ JS Script: Handle real-time file upload rendering -->
+    <script>
+        document.getElementById('imageUploader').addEventListener('change', function (event) {
+            const [file] = this.files;
+            if (file) {
+                document.getElementById('avatarPreview').src = URL.createObjectURL(file);
+            }
+        });
+    </script>
 </body>
 </html>
