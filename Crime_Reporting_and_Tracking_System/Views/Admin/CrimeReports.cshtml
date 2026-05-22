@@ -1,145 +1,353 @@
-﻿@{
-    Layout = null;
-}<!DOCTYPE html><html lang="en"><head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CrimeVision Admin - Crime Reports</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background: radial-gradient(circle at 50% 50%, #1a153a, #0b071e); color: #fff; min-height: 100vh; display: flex; flex-direction: column; }
-        
-        /* HEADER */
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
-        .logo { font-size: 20px; font-weight: bold; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; color: #fff; }
-        .logo i { color: #8a2be2; text-shadow: 0 0 10px rgba(138, 43, 226, 0.5); }
+﻿@model IEnumerable<dynamic>
+@{
+    Layout = "_AdminLayout";
+}
 
-        .container { display: flex; flex: 1; }
+<style>
+    /* Main Panel Box */
+    .report-card {
+        background: rgba(24, 21, 44, 0.7);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 25px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
 
-        /* MATCHING SIDEBAR */
-        .sidebar { width: 240px; background: rgba(15, 12, 30, 0.6); backdrop-filter: blur(20px); border-right: 1px solid rgba(255, 255, 255, 0.05); padding: 20px 0; display: flex; flex-direction: column; }
-        .menu { display: flex; flex-direction: column; gap: 5px; padding: 0 15px; }
-        .menu a { display: flex; align-items: center; gap: 12px; padding: 12px 15px; color: #b3b3b3; text-decoration: none; border-radius: 10px; font-size: 15px; transition: all 0.3s ease; }
-        .menu a i { width: 20px; font-size: 16px; text-align: center; }
-        .menu a:hover { color: #fff; background: rgba(255, 255, 255, 0.05); }
-        .menu a.active { background: linear-gradient(45deg, #6c5ce7, #a29bfe); color: #fff; box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4); }
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+    }
 
-        /* MAIN CONTENT */
-        .main { flex: 1; padding: 30px; display: flex; flex-direction: column; gap: 25px; background: rgba(255, 255, 255, 0.01); }
-        .topbar { display: flex; justify-content: space-between; align-items: center; }
-        .topbar h2 { font-size: 24px; font-weight: 600; letter-spacing: 0.5px; }
-        
-        /* MATCHING TABLES & PANELS */
-        .report-card { background: rgba(24, 21, 44, 0.7); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; padding: 25px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
-        
-        .table-responsive { width: 100%; overflow-x: auto; }
-        .report-table { width: 100%; border-collapse: collapse; text-align: left; }
-        .report-table th { padding: 15px; color: #6c5ce7; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid rgba(255, 255, 255, 0.05); }
-        .report-table td { padding: 15px; font-size: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); color: #e0e0e0; }
-        .report-table tbody tr:hover { background: rgba(255, 255, 255, 0.02); }
+    /* Table Styling */
+    .report-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
 
-        /* GLOWING BADGES */
-        .badge { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-block; }
-        .badge-pending { background: rgba(253, 203, 110, 0.15); color: #fdcb6e; border: 1px solid rgba(253, 203, 110, 0.3); box-shadow: 0 0 10px rgba(253, 203, 110, 0.1); }
-        .badge-progress { background: rgba(9, 132, 227, 0.15); color: #0984e3; border: 1px solid rgba(9, 132, 227, 0.3); box-shadow: 0 0 10px rgba(9, 132, 227, 0.1); }
+        .report-table th {
+            padding: 15px;
+            color: #6c5ce7;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+        }
 
-        /* BUTTONS */
-        .btn-approve { background: linear-gradient(45deg, #2ed573, #1e90ff); color: white; border: none; padding: 7px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(46, 213, 115, 0.2); }
-        .btn-approve:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(46, 213, 115, 0.4); }
-        .approved-text { color: #2ed573; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+        .report-table td {
+            padding: 15px;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: #e0e0e0;
+            vertical-align: middle;
+        }
 
-        /* FOOTER */
-        .footer { text-align: center; padding: 20px; font-size: 13px; color: #666; background: rgba(0, 0, 0, 0.2); margin-top: auto; border-top: 1px solid rgba(255, 255, 255, 0.02); }
-    </style></head><body>
+        .report-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
 
-    <div class="header">
-        <div class="logo">
-            <i class="fa-solid fa-shield-halved"></i> CrimeVision Admin
-        </div>
+    /* Citizen Profile Avatar Styling */
+    .citizen-profile-box {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .avatar-container {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 2px solid rgba(108, 92, 231, 0.4);
+        background: #1a1636;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    .avatar-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .default-avatar-icon {
+        color: #a29bfe;
+        font-size: 18px;
+    }
+
+    .citizen-info div {
+        margin-bottom: 2px;
+    }
+
+    /* Glowing Badges */
+    .badge {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        display: inline-block;
+        text-transform: uppercase;
+    }
+
+    .badge-pending {
+        background: rgba(253, 203, 110, 0.15);
+        color: #fdcb6e;
+        border: 1px solid rgba(253, 203, 110, 0.3);
+    }
+
+    .badge-progress {
+        background: rgba(9, 132, 227, 0.15);
+        color: #0984e3;
+        border: 1px solid rgba(9, 132, 227, 0.3);
+    }
+
+    .badge-completed {
+        background: rgba(46, 213, 115, 0.15);
+        color: #2ed573;
+        border: 1px solid rgba(46, 213, 115, 0.3);
+        box-shadow: 0 0 12px rgba(46, 213, 115, 0.2);
+    }
+
+    /* Action Buttons */
+    .btn-action {
+        border: none;
+        padding: 7px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        text-decoration: none;
+    }
+
+    .btn-approve {
+        background: linear-gradient(45deg, #1e90ff, #00ecc6);
+        color: white;
+    }
+
+    .btn-complete {
+        background: linear-gradient(45deg, #2ed573, #7bed9f);
+        color: white;
+        box-shadow: 0 4px 10px rgba(46, 213, 115, 0.2);
+    }
+
+    .btn-action:hover:not(:disabled) {
+        transform: translateY(-2px);
+        opacity: 0.9;
+    }
+
+    .btn-action:disabled {
+        background: #333 !important;
+        color: #777 !important;
+        cursor: not-allowed;
+        box-shadow: none !important;
+        transform: none !important;
+    }
+
+    /* Officer Dropdown & Tags */
+    .officer-select {
+        background: #131026;
+        color: #fff;
+        border: 1px solid rgba(255,255,255,0.1);
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        outline: none;
+        width: 140px;
+    }
+
+        .officer-select:disabled {
+            background: rgba(255,255,255,0.02);
+            color: #555;
+            border-color: rgba(255,255,255,0.02);
+        }
+
+    .btn-assign {
+        background: #6c5ce7;
+        color: white;
+        border: none;
+        padding: 6px 10px;
+        border-radius: 8px;
+        font-size: 12px;
+        cursor: pointer;
+        margin-left: 3px;
+    }
+
+        .btn-assign:disabled {
+            background: #222;
+            color: #555;
+            cursor: not-allowed;
+        }
+
+    .officer-tag {
+        display: inline-block;
+        background: rgba(108, 92, 231, 0.15);
+        color: #a29bfe;
+        border: 1px solid rgba(108, 92, 231, 0.3);
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        margin: 2px;
+    }
+</style>
+
+<div class="main">
+    <div class="topbar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+        <h2>Crime Reports Management</h2>
     </div>
 
-    <div class="container">
-        <div class="sidebar">
-            <div class="menu">
-                <a href="/Admin/Dashboard"><i class="fa-solid fa-gauge"></i> Dashboard</a>
-                <a href="/Admin/CrimeReports" class="active"><i class="fa-solid fa-file"></i> Crime Reports</a>
-                <a href="/Admin/Users"><i class="fa-solid fa-users"></i> Users</a>
-                <a href="#"><i class="fa-solid fa-user-shield"></i> Officers</a>
-                <a href="/Account/AdminLogin"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
-            </div>
-        </div>
+    <div class="report-card">
+        <div class="table-responsive">
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Reporter / Citizen</th>
+                        <th>Crime Type</th>
+                        <th>Location & Date</th>
+                        <th>Status</th>
+                        <th>Assigned Officers</th>
+                        <th style="text-align: center;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (ViewBag.AllComplaints != null)
+                    {
+                        foreach (var item in ViewBag.AllComplaints)
+                        {
+                            bool isCompleted = item.Status.Contains("Completed");
 
-        <div class="main">
-            <div class="topbar">
-                <h2>Crime Reports Management</h2>
-            </div>
-
-            <div class="report-card">
-                <div class="table-responsive">
-                    <table class="report-table">
-                        <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Citizen Name</th>   <th>Contact Number</th> <th>Crime Type</th>
-                                <th>Location</th>
-                                <th>Date</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (ViewBag.AllComplaints != null)
-                            {
-                                foreach (var item in ViewBag.AllComplaints)
-                                {
-                                    <tr>
-                                        <td>#@item.ID</td>
-                                        
-                                        <td><i class="fa-solid fa-user text-muted style="font-size: 13px;" me-1"></i> @(item.FullName ?? "N/A")</td>
-                                        <td><i class="fa-solid fa-phone text-muted style="font-size: 13px;" me-1"></i> @(item.PhoneNumber ?? "N/A")</td>
-                                        
-                                        <td><strong>@item.CrimeType</strong></td>
-                                        <td>@item.Location</td>
-                                        <td>@item.IncidentDate</td>
-                                        <td>
-                                            @if (item.Status.Contains("Pending"))
+                                <!-- ID -->
+                                <td>#@item.ID</td>
+
+                                <!-- Citizen Profile Image & Details Column -->
+                                <td>
+                                    <div class="citizen-profile-box">
+                                        <div class="avatar-container">
+                                            @if (!string.IsNullOrEmpty(item.CitizenImage) && (item.CitizenImage.StartsWith("/") || item.CitizenImage.StartsWith("~") || item.CitizenImage.StartsWith("http")))
                                             {
-                                                <span class="badge badge-pending">@item.Status</span>
+                                               
+                                                <img src="@Url.Content(item.CitizenImage)" class="avatar-img" alt="Citizen Profile" onerror="this.onerror=null; this.src='/images/default-avatar.png'; " />
                                             }
                                             else
                                             {
-                                                <span class="badge badge-progress">@item.Status</span>
+                                                <i class="fa-solid fa-user default-avatar-icon"></i>
                                             }
-                                        </td>
-                                        <td>
+                                        </div>
+                                        <div class="citizen-info">
+                                            <div style="font-weight: 600; color: #fff;">@(item.FullName ?? "Anonymous")</div>
+                                            <div style="font-size: 12px; color: #aaa;"><i class="fa-solid fa-phone" style="font-size: 10px; color: #6c5ce7;"></i> @(item.PhoneNumber ?? "N/A")</div>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <!-- Crime Type -->
+                                <td><strong style="color: #ff7675;">@item.CrimeType</strong></td>
+
+                                <!-- Location & Date -->
+                                <td>
+                                    <div><i class="fa-solid fa-location-dot" style="color: #a29bfe; font-size: 11px;"></i> @item.Location</div>
+                                    <div style="font-size: 12px; color: #888; margin-top: 4px;"><i class="fa-solid fa-calendar-days" style="font-size: 11px;"></i> @item.IncidentDate</div>
+                                </td>
+
+                                <!-- Status Badges -->
+                                <td>
+                                    @if (isCompleted)
+                                    {
+                                        <span class="badge badge-completed"><i class="fa-solid fa-circle-check"></i> Closed</span>
+                                    }
+                                    else if (item.Status.Contains("Pending"))
+                                    {
+                                        <span class="badge badge-pending"><i class="fa-solid fa-clock"></i> @item.Status</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-progress"><i class="fa-solid fa-spinner fa-spin"></i> @item.Status</span>
+                                    }
+                                </td>
+
+                                <!-- Assigned Officers Management -->
+                                <td>
+                                    <div style="margin-bottom: 8px; max-width: 180px;">
+                                        @if (!string.IsNullOrEmpty(item.AssignedOfficers))
+                                        {
+                                            string[] officers = item.AssignedOfficers.Split(',');
+                                            foreach (var officer in officers)
+                                            {
+                                                <span class="officer-tag"><i class="fa-solid fa-user-shield" style="font-size: 9px;"></i> @officer.Trim()</span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span style="font-size: 12px; color: #ff7675;"><i class="fa-solid fa-triangle-exclamation"></i> Unassigned</span>
+                                        }
+                                    </div>
+
+                                    <!-- Officer Allocation Form -->
+                                    <form action="/Admin/AssignOfficer" method="post" style="display: flex; align-items: center;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="complaintId" value="@item.ID" />
+                                        <select name="officerId" class="officer-select" required @(isCompleted ? "disabled" : "") style="border-right: none; border-top-right-radius: 0; border-bottom-right-radius: 0;">
+                                            <option value="">+ Assign Officer</option>
+                                            @if (ViewBag.OfficersList != null)
+                                            {
+                                                foreach (var off in ViewBag.OfficersList)
+                                                {
+                                                    <option value="@off.Id">@off.FullName</option>
+                                                }
+                                            }
+                                        </select>
+                                        <button type="submit" class="btn-assign" @(isCompleted ? "disabled" : "") style="border-top-left-radius: 0; border-bottom-left-radius: 0;"><i class="fa-solid fa-plus"></i></button>
+                                    </form>
+                                </td>
+
+                                <!-- Action Buttons Logic (Approve / Complete) -->
+                                <td style="text-align: center;">
+                                    <div style="display: flex; flex-direction: column; gap: 8px; align-items: center;">
+                                        @if (isCompleted)
+                                        {
+                                            <span style="color: #2ed573; font-size: 13px; font-weight: 600;"><i class="fas fa-check-double"></i> Case Resolved</span>
+                                        }
+                                        else
+                                        {
                                             @if (item.Status.Contains("Pending"))
                                             {
                                                 <form action="/Admin/ApproveComplaint" method="post" style="display:inline;">
+                                                    @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@item.ID" />
-                                                    <button type="submit" class="btn-approve">Approve Request</button>
+                                                    <button type="submit" class="btn-action btn-approve"><i class="fa-solid fa-thumbs-up"></i> Approve</button>
                                                 </form>
                                             }
-                                            else
-                                            {
-                                                <span class="approved-text"><i class="fas fa-check-circle"></i> In Progress</span>
-                                            }
-                                        </td>
-                                    </tr>
-                                }
-                            }
-                            else
-                            {
-                                <tr>
-                                    <td colspan="8" style="text-align: center; color: #888; padding: 30px 0;">No active complaints found in registry.</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+
+                                            <!-- Complete Case Action Button -->
+                                            <form action="/Admin/CompleteComplaint" method="post" style="display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@item.ID" />
+                                                <button type="submit" class="btn-action btn-complete"><i class="fa-solid fa-box-archive"></i> Complete</button>
+                                            </form>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" style="text-align: center; color: #888; padding: 30px 0;">No active complaints found in registry.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
     </div>
-
-    <div class="footer">
-        © 2026 CrimeVision | Smart Crime Reporting & Tracking System
-    </div></body></html>
+</div>

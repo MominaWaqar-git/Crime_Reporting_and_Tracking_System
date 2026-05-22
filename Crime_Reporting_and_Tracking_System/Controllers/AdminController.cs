@@ -316,7 +316,17 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
 
             using (SqlConnection con = new SqlConnection(_connectionString))
             {
-                string query = "SELECT ID, CrimeType, IncidentDate, Location, Status, Description, CitizenName, CitizenPhone FROM Complaints ORDER BY ID DESC";
+                string query = @"
+            SELECT c.ID, c.CrimeType, c.IncidentDate, c.Location, c.Status, c.Description, 
+                   c.CitizenName, c.CitizenPhone, u.ProfileImage,
+                   STRING_AGG(o.Name + ' (' + o.Rank + ')', ', ') AS AssignedOfficers
+            FROM Complaints c
+            LEFT JOIN Users u ON c.CitizenPhone = u.PhoneNumber
+            LEFT JOIN ComplaintAssignments ca ON c.ID = ca.ComplaintId
+            LEFT JOIN Officers o ON ca.OfficerId = o.Id
+            GROUP BY c.ID, c.CrimeType, c.IncidentDate, c.Location, c.Status, c.Description, c.CitizenName, c.CitizenPhone, u.ProfileImage
+            ORDER BY c.ID DESC";
+
                 using (SqlCommand cmd = new SqlCommand(query, con))
                 {
                     con.Open();
@@ -339,14 +349,132 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                             complaint.Add("FullName", reader["CitizenName"] != DBNull.Value ? reader["CitizenName"].ToString() : "Anonymous");
                             complaint.Add("PhoneNumber", reader["CitizenPhone"] != DBNull.Value ? reader["CitizenPhone"].ToString() : "N/A");
 
+                            // --- IMAGE PATH CORRECTION LOGIC ---
+                            string dbImagePath = reader["ProfileImage"] != DBNull.Value ? reader["ProfileImage"].ToString() : "";
+                            string finalImagePath = "";
+
+                            if (!string.IsNullOrEmpty(dbImagePath))
+                            {
+                                // Agar path pehle se sahi format (/ ya http) mein hai to wahi rehne dein
+                                if (dbImagePath.StartsWith("/") || dbImagePath.StartsWith("~") || dbImagePath.StartsWith("http"))
+                                {
+                                    finalImagePath = dbImagePath;
+                                }
+                                else
+                                {
+                                    // AGAR DATABASE MEIN SIRF FILE NAME HAI (e.g. "my-pic.jpg"):
+                                    // To aap apne wwwroot ke folder ka naam yahan likhein (Misaal ke tor par '/uploads/')
+                                    finalImagePath = "/uploads/" + dbImagePath;
+                                }
+                            }
+
+                            complaint.Add("CitizenImage", finalImagePath);
+                            // ------------------------------------
+
+                            complaint.Add("AssignedOfficers", reader["AssignedOfficers"] != DBNull.Value ? reader["AssignedOfficers"].ToString() : "");
+
                             allComplaints.Add(complaint);
                         }
                     }
                 }
             }
 
+            // Dropdown ke liye Officers ki list
+            List<dynamic> officersList = new List<dynamic>();
+            using (SqlConnection con2 = new SqlConnection(_connectionString))
+            {
+                string officerQuery = "SELECT Id, Name, Rank FROM Officers WHERE Status = 'Active' ORDER BY Name ASC";
+                using (SqlCommand cmd2 = new SqlCommand(officerQuery, con2))
+                {
+                    con2.Open();
+                    using (SqlDataReader reader2 = cmd2.ExecuteReader())
+                    {
+                        while (reader2.Read())
+                        {
+                            officersList.Add(new
+                            {
+                                Id = Convert.ToInt32(reader2["Id"]),
+                                FullName = reader2["Name"].ToString() + " (" + reader2["Rank"].ToString() + ")"
+                            });
+                        }
+                    }
+                }
+            }
+
+            ViewBag.OfficersList = officersList;
             ViewBag.AllComplaints = allComplaints;
+
             return View("CrimeReports");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CompleteComplaint(int id)
+        {
+            // 1. Check karein ke admin login hai ya nahi
+            if (!IsAdminAuthenticated()) return RedirectToAction("AdminLogin", "Account");
+
+            // 2. Database mein status update karne ki logic
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                // Case ko close ya complete karne ke liye status badal rahe hain
+                string query = "UPDATE Complaints SET Status = 'Completed' WHERE ID = @id";
+
+                using (SqlCommand cmd = new SqlCommand(query, con))
+                {
+                    cmd.Parameters.AddWithValue("@id", id);
+
+                    con.Open();
+                    cmd.ExecuteNonQuery(); // Query run ho jayegi
+                }
+            }
+
+            // 3. Status badalne ke baad wapas usi list wale page par bhej dein jahan updated data dikhega
+            return RedirectToAction("CrimeReports");
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult AssignOfficer(int complaintId, int officerId)
+        {
+            if (!IsAdminAuthenticated()) return RedirectToAction("AdminLogin", "Account");
+
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                // Pehle check karein ke yeh officer is complaint ko pehle se assigned to nahi hai?
+                string checkQuery = "SELECT COUNT(1) FROM ComplaintAssignments WHERE ComplaintId = @cId AND OfficerId = @oId";
+
+                con.Open();
+                using (SqlCommand checkCmd = new SqlCommand(checkQuery, con))
+                {
+                    checkCmd.Parameters.AddWithValue("@cId", complaintId);
+                    checkCmd.Parameters.AddWithValue("@oId", officerId);
+                    int count = Convert.ToInt32(checkCmd.ExecuteScalar());
+
+                    if (count == 0) // Agar assigned nahi hai to insert karein
+                    {
+                        string insertQuery = "INSERT INTO ComplaintAssignments (ComplaintId, OfficerId, AssignedDate) VALUES (@cId, @oId, @date)";
+                        using (SqlCommand insertCmd = new SqlCommand(insertQuery, con))
+                        {
+                            insertCmd.Parameters.AddWithValue("@cId", complaintId);
+                            insertCmd.Parameters.AddWithValue("@oId", officerId);
+                            insertCmd.Parameters.AddWithValue("@date", DateTime.Now);
+                            insertCmd.ExecuteNonQuery();
+                        }
+
+                        // Jaise hi koi officer assign ho, automatically status 'In Progress' kar dein
+                        string updateStatusQuery = "UPDATE Complaints SET Status = 'In Progress' WHERE ID = @cId AND Status = 'Pending'";
+                        using (SqlCommand updateCmd = new SqlCommand(updateStatusQuery, con))
+                        {
+                            updateCmd.Parameters.AddWithValue("@cId", complaintId);
+                            updateCmd.ExecuteNonQuery();
+                        }
+                    }
+                }
+            }
+
+            return RedirectToAction("CrimeReports");
         }
 
         [HttpPost]
@@ -435,5 +563,6 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
 
             return View(model);
         }
+
     }
 }
