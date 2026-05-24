@@ -1,0 +1,192 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Officer Dashboard - CrimeVision</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+            body {
+                background-color: #030712;
+                color: #f3f4f6;
+                font-family: 'Segoe UI', system-ui, sans-serif;
+            }
+
+            .sidebar {
+                background: #0b0f19;
+                min-height: 100vh;
+                border-right: 1px solid #1f2937;
+                padding: 25px 20px;
+            }
+
+            .workspace {
+                padding: 35px;
+            }
+
+            .metrics-card {
+                background: #111827;
+                border: 1px solid #1f2937;
+                border-radius: 12px;
+                padding: 22px;
+            }
+
+            .table-custom {
+                background: #111827;
+                border-radius: 12px;
+                overflow: hidden;
+                border: 1px solid #1f2937;
+            }
+
+                .table-custom th {
+                    background: #1f2937;
+                    color: #9ca3af;
+                    border: none;
+                    font-size: 13px;
+                    letter-spacing: 0.5px;
+                }
+
+                .table-custom td {
+                    color: #e5e7eb;
+                    border-color: #1f2937;
+                    vertical-align: middle;
+                }
+
+            .badge-pending {
+                background: rgba(245, 158, 11, 0.2);
+                color: #fbbf24;
+                border: 1px solid rgba(245, 158, 11, 0.4);
+            }
+
+            .badge-resolved {
+                background: rgba(16, 185, 129, 0.2);
+                color: #34d399;
+                border: 1px solid rgba(16, 185, 129, 0.4);
+            }
+
+            .officer-avatar {
+                width: 45px;
+                height: 45px;
+                border-radius: 50%;
+                object-fit: cover;
+                border: 2px solid #0284c7;
+            }
+    </style>
+</head>
+<body>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-2 sidebar">
+                <h4 class="text-info font-weight-bold mb-2">CrimeVision</h4>
+                <p class="text-muted small mb-4">Internal Field Grid</p>
+                <hr style="background-color: #1f2937;" />
+
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <img src="~/uploads/@ViewBag.OfficerImage" class="officer-avatar me-2" alt="Avatar" />
+                    <div>
+                        <h6 class="mb-0 text-white font-weight-bold">@ViewBag.OfficerName</h6>
+                        <small class="text-info font-weight-bold" style="font-size: 11px;">Rank: @ViewBag.OfficerRank</small>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <span class="badge w-100 py-2 text-start bg-dark border border-secondary text-white-50">
+                        📍 Scope: @ViewBag.StationScope
+                    </span>
+                </div>
+
+                <hr style="background-color: #1f2937;" />
+                <ul class="nav flex-column mt-3">
+                    <li class="nav-item mb-2">
+                        <a class="nav-link text-white active px-2 style="background: rgba(2, 132, 199, 0.1); border-radius: 6px;" href="#">📁 Jurisdiction Cases</a>
+                    </li>
+                    <li class="nav-item mt-4">
+                        <a class="nav-link text-danger font-weight-bold" asp-controller="OfficerPortal" asp-action="Logout">🚪 Secure Sign Out</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="col-md-10 workspace">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2>Officer Tactical Workspace</h2>
+                        <p class="text-secondary small">Real-time analytical metrics for <strong>@ViewBag.StationScope Police Station</strong> division.</p>
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-5">
+                    <div class="col-md-4">
+                        <div class="metrics-card">
+                            <h6 class="text-secondary text-uppercase mb-2" style="font-size: 12px; letter-spacing: 1px;">Total Region Cases</h6>
+                            <h2 class="font-weight-bold mb-0">@ViewBag.TotalCases</h2>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="metrics-card">
+                            <h6 class="text-warning text-uppercase mb-2" style="font-size: 12px; letter-spacing: 1px;">Active / Pending</h6>
+                            <h2 class="font-weight-bold mb-0 text-warning">@ViewBag.ActiveCases</h2>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="metrics-card">
+                            <h6 class="text-success text-uppercase mb-2" style="font-size: 12px; letter-spacing: 1px;">Resolved Investigations</h6>
+                            <h2 class="font-weight-bold mb-0 text-success">@ViewBag.ResolvedCases</h2>
+                        </div>
+                    </div>
+                </div>
+
+                <h5 class="mb-3 text-white-50 font-weight-light">Assigned Jurisdiction Crime Records</h5>
+                <div class="table-responsive table-custom">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th>CASE ID</th>
+                                <th>CRIME TYPE</th>
+                                <th>COMPLAINANT</th>
+                                <th>INCIDENT DATE</th>
+                                <th>STATION AREA</th>
+                                <th>STATUS GRID</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (ViewBag.Complaints != null && ((List<dynamic>)ViewBag.Complaints).Count > 0)
+                            {
+                                foreach (var item in ViewBag.Complaints)
+                                {
+                                    var complaint = (IDictionary<string, object>)item;
+                                    <tr>
+                                        <td class="font-weight-bold text-info">#@complaint["ID"]</td>
+                                        <td>@complaint["CrimeType"]</td>
+                                        <td>@complaint["CitizenName"]</td>
+                                        <td>@complaint["IncidentDate"]</td>
+                                        <td><span class="text-white-50">@complaint["Location"]</span></td>
+                                        <td>
+                                            @if (complaint["Status"].ToString().ToLower().Contains("resolved"))
+                                            {
+                                                <span class="badge badge-resolved px-3 py-1.5">Resolved</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge badge-pending px-3 py-1.5">@complaint["Status"]</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-4">No active crime files mapped directly to this station scope.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
