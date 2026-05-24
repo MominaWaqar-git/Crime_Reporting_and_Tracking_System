@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.Linq; // Count karne ke liye zaroori hai
 
 namespace Crime_Reporting_and_Tracking_System.Controllers
 {
@@ -52,17 +53,9 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                     {
                         if (reader.Read())
                         {
-                            string status = reader["Status"]?.ToString() ?? "Active";
-                            if (status.ToLower() != "active")
-                            {
-                                ViewBag.Error = "Your account is deactivated by the Admin.";
-                                return View(model);
-                            }
-
                             HttpContext.Session.SetString("OfficerId", reader["Id"].ToString());
                             HttpContext.Session.SetString("OfficerName", reader["Name"].ToString());
                             HttpContext.Session.SetString("OfficerCNIC", reader["CNIC"].ToString());
-                            HttpContext.Session.SetString("OfficerEmail", reader["Email"]?.ToString() ?? "N/A");
                             HttpContext.Session.SetString("OfficerRank", reader["Rank"].ToString());
                             HttpContext.Session.SetString("StationScope", reader["StationName"].ToString());
                             HttpContext.Session.SetString("OfficerImage", reader["ProfilePicturePath"]?.ToString() ?? "default-avatar.png");
@@ -71,7 +64,7 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                         }
                         else
                         {
-                            ViewBag.Error = "No registered Officer found with this CNIC.";
+                            ViewBag.Error = "No registered Officer found.";
                             return View(model);
                         }
                     }
@@ -82,44 +75,54 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
         [HttpGet]
         public IActionResult Dashboard()
         {
-            string officerCNIC = HttpContext.Session.GetString("OfficerCNIC");
-            string stationScope = HttpContext.Session.GetString("StationScope");
-
-            if (string.IsNullOrEmpty(officerCNIC) || string.IsNullOrEmpty(stationScope))
-            {
-                return RedirectToAction("Login");
-            }
+            string officerId = HttpContext.Session.GetString("OfficerId");
+            if (string.IsNullOrEmpty(officerId)) return RedirectToAction("Login");
 
             List<dynamic> assignedComplaints = new List<dynamic>();
+            int total = 0, active = 0, resolved = 0;
             string conString = _configuration.GetConnectionString("CrimeDB");
 
             using (SqlConnection con = new SqlConnection(conString))
             {
-                string query = "SELECT ID, CrimeType, IncidentDate, Location, Status, CitizenName FROM Complaints WHERE Location = @scope ORDER BY ID DESC";
+                // JOIN Query: Assignment table aur Complaints table ko link kiya
+                string query = @"SELECT C.* FROM Complaints C 
+                                 INNER JOIN ComplaintAssignments A ON C.ID = A.ComplaintId 
+                                 WHERE A.OfficerId = @oid ORDER BY C.ID DESC";
+
                 using (SqlCommand cmd = new SqlCommand(query, con))
                 {
-                    cmd.Parameters.AddWithValue("@scope", stationScope);
+                    cmd.Parameters.AddWithValue("@oid", officerId);
                     con.Open();
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
                         {
-                            var complaint = new ExpandoObject() as IDictionary<string, object>;
-                            complaint.Add("ID", reader["ID"]);
-                            complaint.Add("CrimeType", reader["CrimeType"].ToString());
-                            complaint.Add("IncidentDate", Convert.ToDateTime(reader["IncidentDate"]).ToString("dd/MM/yyyy"));
-                            complaint.Add("Location", reader["Location"].ToString());
-                            complaint.Add("Status", reader["Status"].ToString());
-                            complaint.Add("CitizenName", reader["CitizenName"].ToString());
-                            assignedComplaints.Add(complaint);
+                            var c = new ExpandoObject() as IDictionary<string, object>;
+                            c.Add("ID", reader["ID"]);
+                            c.Add("CrimeType", reader["CrimeType"].ToString());
+                            c.Add("CitizenName", reader["CitizenName"].ToString());
+                            c.Add("IncidentDate", Convert.ToDateTime(reader["IncidentDate"]).ToString("dd/MM/yyyy"));
+                            c.Add("Status", reader["Status"].ToString());
+                            assignedComplaints.Add(c);
+
+                            total++;
+                            if (reader["Status"].ToString().Trim().ToLower() == "resolved") resolved++;
+                            else active++;
                         }
                     }
                 }
             }
 
             ViewBag.OfficerName = HttpContext.Session.GetString("OfficerName");
-            ViewBag.StationScope = stationScope;
+            ViewBag.OfficerRank = HttpContext.Session.GetString("OfficerRank");
+            ViewBag.OfficerImage = HttpContext.Session.GetString("OfficerImage");
+            ViewBag.StationScope = HttpContext.Session.GetString("StationScope");
+
+            ViewBag.TotalCases = total;
+            ViewBag.ActiveCases = active;
+            ViewBag.ResolvedCases = resolved;
             ViewBag.Complaints = assignedComplaints;
+
             return View("~/Views/OfficerPortal/Dashboard.cshtml");
         }
 

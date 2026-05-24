@@ -12,7 +12,6 @@
             :root {
                 --blue: #2563eb;
                 --purple: #9333ea;
-                --cyan: #06b6d4;
             }
 
             * {
@@ -26,10 +25,8 @@
                 min-height: 100vh;
                 background: #050816;
                 color: white;
-                overflow-x: hidden;
             }
 
-            /* BLOBS & HEADER/FOOTER (Same as Admin) */
             .blob {
                 position: fixed;
                 border-radius: 50%;
@@ -68,21 +65,11 @@
                 z-index: 10;
             }
 
-            .logo {
-                font-size: 22px;
-                font-weight: 700;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
-
-                .logo i {
-                    color: #60a5fa;
-                }
-
             .container {
                 display: flex;
                 margin-top: 80px;
+                position: relative;
+                z-index: 2;
             }
 
             .sidebar {
@@ -91,7 +78,6 @@
                 padding: 20px;
                 background: rgba(255,255,255,0.05);
                 backdrop-filter: blur(20px);
-                z-index: 2;
             }
 
             .menu a {
@@ -99,10 +85,10 @@
                 align-items: center;
                 gap: 10px;
                 padding: 12px;
-                margin: 10px 0;
                 color: white;
                 text-decoration: none;
                 border-radius: 12px;
+                margin-bottom: 10px;
                 transition: .3s;
             }
 
@@ -113,13 +99,13 @@
             .main {
                 flex: 1;
                 padding: 30px;
-                z-index: 2;
             }
 
             .cards {
                 display: grid;
                 grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
                 gap: 20px;
+                margin-bottom: 30px;
             }
 
             .card {
@@ -127,11 +113,9 @@
                 border-radius: 18px;
                 background: rgba(255,255,255,0.05);
                 border: 1px solid rgba(255,255,255,0.1);
-                backdrop-filter: blur(18px);
             }
 
             .table-box {
-                margin-top: 30px;
                 padding: 20px;
                 border-radius: 18px;
                 background: rgba(255,255,255,0.05);
@@ -149,31 +133,12 @@
                 text-align: left;
             }
 
-            .footer {
-                position: fixed;
-                bottom: 0;
-                width: 100%;
-                text-align: center;
-                padding: 12px;
-                background: rgba(255,255,255,0.04);
-                border-top: 1px solid rgba(255,255,255,0.08);
-            }
-
-            .officer-info {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                margin-bottom: 20px;
-                padding: 10px;
-                background: rgba(255,255,255,0.05);
-                border-radius: 10px;
-            }
-
             .avatar {
                 width: 40px;
                 height: 40px;
                 border-radius: 50%;
                 object-fit: cover;
+                border: 2px solid var(--blue);
             }
     </style>
 </head>
@@ -184,9 +149,9 @@
 
     <div class="container">
         <div class="sidebar">
-            <div class="officer-info">
+            <div class="officer-info" style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
                 <img src="@Url.Content("~/uploads/" + ViewBag.OfficerImage)" class="avatar" />
-                <div><div style="font-size:12px">@ViewBag.OfficerName</div><small style="color:#60a5fa">@ViewBag.OfficerRank</small></div>
+                <div><div style="font-weight:600">@ViewBag.OfficerName</div><small style="color:#60a5fa">@ViewBag.OfficerRank</small></div>
             </div>
             <div class="menu">
                 <a class="active" href="#"><i class="fa-solid fa-gauge"></i> Dashboard</a>
@@ -195,33 +160,34 @@
         </div>
 
         <div class="main">
-            <div class="topbar"><h2>Tactical Workspace: @ViewBag.StationScope</h2></div>
-
             <div class="cards">
-                <div class="card"><h3>@ViewBag.TotalCases</h3><p>Total Cases</p></div>
+                <div class="card"><h3>@ViewBag.TotalCases</h3><p>Total Assigned</p></div>
                 <div class="card"><h3>@ViewBag.ActiveCases</h3><p>Active/Pending</p></div>
                 <div class="card"><h3>@ViewBag.ResolvedCases</h3><p>Resolved</p></div>
             </div>
-
             <div class="table-box">
                 <h3>Assigned Crime Reports</h3>
                 <table>
-                    <tr><th>ID</th><th>Crime Type</th><th>Citizen</th><th>Date</th><th>Status</th></tr>
-                    @foreach (var item in ViewBag.Complaints)
-                    {
-                        var c = (IDictionary<string, object>)item;
-                        <tr>
-                            <td>#@c["ID"]</td>
-                            <td>@c["CrimeType"]</td>
-                            <td>@c["CitizenName"]</td>
-                            <td>@c["IncidentDate"]</td>
-                            <td><span class="status">@c["Status"]</span></td>
-                        </tr>
-                    }
+                    <thead><tr><th>ID</th><th>Crime Type</th><th>Citizen</th><th>Date</th><th>Status</th></tr></thead>
+                    <tbody>
+                        @if (ViewBag.Complaints != null)
+                        {
+                            foreach (var item in ViewBag.Complaints)
+                            {
+                                var c = (IDictionary<string, object>)item;
+                                <tr>
+                                    <td>#@c["ID"]</td>
+                                    <td>@c["CrimeType"]</td>
+                                    <td>@c["CitizenName"]</td>
+                                    <td>@c["IncidentDate"]</td>
+                                    <td>@c["Status"]</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
                 </table>
             </div>
         </div>
     </div>
-    <div class="footer">© 2026 CrimeVision | Smart Crime Reporting & Tracking System</div>
 </body>
 </html>
