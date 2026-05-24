@@ -1,0 +1,168 @@
+﻿@{
+    Layout = null;
+}
+@model IDictionary<string, object>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Case Details - CrimeVision</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+            :root {
+                --blue: #2563eb;
+                --purple: #9333ea;
+                --cyan: #06b6d4;
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+                font-family: 'Poppins', sans-serif;
+            }
+
+            body {
+                background: #050816;
+                color: white;
+                padding: 40px;
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            /* Dashboard wale Blobs */
+            .blob {
+                position: fixed;
+                border-radius: 50%;
+                filter: blur(120px);
+                opacity: .4;
+                z-index: -1;
+            }
+
+            .b1 {
+                width: 400px;
+                height: 400px;
+                background: var(--blue);
+                top: -100px;
+                left: -100px;
+            }
+
+            .b2 {
+                width: 400px;
+                height: 400px;
+                background: var(--purple);
+                bottom: -100px;
+                right: -100px;
+            }
+
+            .details-box {
+                background: rgba(255,255,255,0.03);
+                backdrop-filter: blur(20px);
+                padding: 40px;
+                border-radius: 20px;
+                border: 1px solid rgba(255,255,255,0.08);
+                max-width: 800px;
+                width: 100%;
+            }
+
+            .header-line {
+                height: 3px;
+                width: 100%;
+                background: linear-gradient(90deg, var(--blue), var(--purple), var(--cyan));
+                margin: 20px 0;
+                border-radius: 2px;
+            }
+
+            .header-section {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .badge {
+                background: linear-gradient(90deg, var(--blue), var(--purple));
+                padding: 8px 20px;
+                border-radius: 20px;
+                font-weight: 600;
+            }
+
+            .info-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+                margin-top: 20px;
+            }
+
+            .item {
+                background: rgba(255,255,255,0.03);
+                padding: 18px;
+                border-radius: 12px;
+                border: 1px solid rgba(255,255,255,0.05);
+            }
+
+            .upload-box {
+                margin-top: 30px;
+                padding: 20px;
+                border: 1px solid rgba(255,255,255,0.1);
+                border-radius: 15px;
+                background: rgba(0,0,0,0.2);
+            }
+
+            .btn-action {
+                background: var(--purple);
+                border: none;
+                color: white;
+                padding: 12px;
+                border-radius: 8px;
+                cursor: pointer;
+                width: 100%;
+                margin-top: 10px;
+                font-weight: 600;
+            }
+    </style>
+</head>
+<body>
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+
+    <div class="details-box">
+        <div class="header-section">
+            <h2>Crime Report #@Model["ID"]</h2>
+            <span class="badge">@Model["Status"]</span>
+        </div>
+        <div class="header-line"></div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div style="color:#4ade80; margin-bottom:20px; text-align:center;">@TempData["Success"]</div>
+        }
+
+        <div class="info-grid">
+            <div class="item"><strong>Crime Type:</strong><br>@Model["CrimeType"]</div>
+            <div class="item"><strong>Incident Date:</strong><br>@Model["IncidentDate"]</div>
+            <div class="item"><strong>Citizen:</strong><br>@Model["CitizenName"]</div>
+            <div class="item"><strong>Contact:</strong><br>@Model["CitizenPhone"]</div>
+        </div>
+
+        <div class="item" style="margin-top:20px;"><strong>Location:</strong><br>@Model["Location"]</div>
+        <div class="item" style="margin-top:20px;"><strong>Description:</strong><br><p style="color:#aaa;">@Model["Description"]</p></div>
+
+        <div class="upload-box">
+            <strong>Attach Evidence:</strong>
+            <form asp-action="UploadEvidence" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="complaintId" value="@Model["ID"]" />
+                <select name="category" style="width:100%; padding:10px; margin:10px 0; background:#050816; color:white; border:1px solid #374151; border-radius:5px;">
+                    <option value="Photo">Photo Evidence</option>
+                    <option value="Document">Official Document</option>
+                    <option value="Digital">Digital/CCTV</option>
+                </select>
+                <input type="file" name="evidenceFile" required style="color:#aaa; margin-bottom:10px;" />
+                <button type="submit" class="btn-action">Upload Evidence</button>
+            </form>
+        </div>
+
+        <a href="@Url.Action("Dashboard", "OfficerPortal")" style="display:block; margin-top:20px; color:#60a5fa; text-align:center; text-decoration:none;">← Back to Dashboard</a>
+    </div>
+</body>
+</html>

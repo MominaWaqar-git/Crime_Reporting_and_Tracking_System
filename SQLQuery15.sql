@@ -1,0 +1,1 @@
+﻿UPDATE Complaints SET Status = 'Pending' WHERE Status IS NULL OR Status = '';

@@ -1,0 +1,1 @@
+﻿ALTER TABLE Complaints ALTER COLUMN Status NVARCHAR(50);
