@@ -1,176 +1,211 @@
-﻿@{
+﻿@model CrimeReportingSystem.Models.Officer
+@{
     Layout = null;
 }
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Officer Portal Login - CrimeVision</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Officer Portal - CrimeVision</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
     <style>
-            body {
-                /* Landing page se exact matching dark premium gradient radial layout */
-                background: radial-gradient(circle at center, #0e1731 0%, #030712 100%);
-                color: #fff;
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                height: 100vh;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                overflow: hidden;
+            * {
                 margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+                font-family: 'Poppins', sans-serif;
             }
 
-            /* Top-Left Logo Styling matching landing page */
-            .brand-header {
+            body {
+                min-height: 100vh;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background: #050816;
+                overflow: hidden;
+                color: white;
+            }
+
+            /* BLOBS - Purple/Blue Swapped */
+            .blob {
                 position: absolute;
-                top: 24px;
-                left: 40px;
+                border-radius: 50%;
+                filter: blur(120px);
+                opacity: .6;
+            }
+
+            .b1 {
+                width: 400px;
+                height: 400px;
+                background: #2563eb;
+                top: -120px;
+                left: -120px;
+            }
+            /* Swapped to Blue */
+            .b2 {
+                width: 400px;
+                height: 400px;
+                background: #9333ea;
+                bottom: -120px;
+                right: -120px;
+            }
+            /* Swapped to Purple */
+
+            /* HEADER */
+            .header {
+                position: absolute;
+                top: 0;
+                width: 100%;
+                padding: 18px 8%;
+                display: flex;
+                align-items: center;
+                background: rgba(255,255,255,0.05);
+                backdrop-filter: blur(20px);
+                border-bottom: 1px solid rgba(255,255,255,0.1);
+            }
+
+            .logo {
+                font-size: 26px;
+                font-weight: 700;
                 display: flex;
                 align-items: center;
                 gap: 10px;
             }
 
-            .brand-logo-text {
-                font-size: 22px;
-                font-weight: 700;
-                color: #ffffff;
-                letter-spacing: 0.5px;
+                .logo i {
+                    color: #60a5fa;
+                }
+            
+            /* Icon Blue */
+
+            /* LOGIN BOX */
+            .login-box {
+                width: 420px;
+                padding: 45px;
+                border-radius: 30px;
+                background: rgba(255,255,255,0.06);
+                border: 1px solid rgba(255,255,255,0.08);
+                backdrop-filter: blur(20px);
+                box-shadow: 0 20px 50px rgba(0,0,0,.5);
+                z-index: 2;
             }
 
-            /* Form Card UI Wrapper with perfect matching layout */
-            .login-card {
-                background: #111625; /* Sleek Dark Theme matching internal panels */
-                border: 1px solid rgba(255, 255, 255, 0.06);
-                border-radius: 20px;
-                padding: 40px 35px;
+                .login-box h2 {
+                    text-align: center;
+                    margin-bottom: 25px;
+                    font-size: 32px;
+                    font-weight: 700;
+                }
+
+            .input-box {
+                position: relative;
+                margin-bottom: 20px;
+            }
+
+                .input-box input {
+                    width: 100%;
+                    padding: 15px;
+                    border-radius: 14px;
+                    border: 1px solid rgba(255,255,255,0.1);
+                    outline: none;
+                    background: rgba(255,255,255,0.08);
+                    color: white;
+                    font-size: 15px;
+                }
+
+                    .input-box input:focus {
+                        border-color: #2563eb;
+                    }
+                /* Focused Border Blue */
+                .input-box i {
+                    position: absolute;
+                    right: 15px;
+                    top: 15px;
+                    color: #cbd5e1;
+                }
+
+            /* BUTTON - Swapped Gradient */
+            .btn {
                 width: 100%;
-                max-width: 440px;
-                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
-            }
-
-            .login-title {
-                font-size: 28px;
-                font-weight: 700;
-                color: #ffffff;
-                margin-bottom: 25px;
-                letter-spacing: -0.5px;
-            }
-
-            /* Input Controls Setup matching form style screenshots */
-            .form-control {
-                background: #202635 !important;
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                color: #ffffff !important;
-                border-radius: 10px;
-                font-size: 15px;
-                transition: all 0.2s ease;
-            }
-
-                .form-control::placeholder {
-                    color: #565e73;
-                }
-
-                .form-control:focus {
-                    background: #252c3d !important;
-                    border-color: #a21caf; /* Officer Theme Highlight Focus Color */
-                    box-shadow: 0 0 0 3px rgba(162, 28, 175, 0.25);
-                }
-
-            /* Purple/Magenta Button styling matching landing button color blueprint */
-            .btn-officer-auth {
-                background: linear-gradient(135deg, #a21caf 0%, #6366f1 100%);
+                padding: 15px;
                 border: none;
+                border-radius: 14px;
+                background: linear-gradient(135deg,#9333ea,#2563eb);
                 color: white;
                 font-weight: 600;
-                font-size: 15px;
-                border-radius: 10px;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                cursor: pointer;
+                transition: .3s;
             }
 
-                .btn-officer-auth:hover {
-                    transform: translateY(-1px);
-                    box-shadow: 0 8px 20px rgba(162, 28, 175, 0.45);
-                    color: white;
-                    opacity: 0.95;
+                .btn:hover {
+                    transform: translateY(-3px);
+                    box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
                 }
 
-            /* Return Navigation Link placement alignment */
-            .btn-back-hub {
-                background: #1c2230;
-                border: 1px solid rgba(255, 255, 255, 0.05);
-                color: #9ca3af;
-                font-size: 14px;
-                font-weight: 500;
-                border-radius: 10px;
-                transition: all 0.2s ease;
-                display: inline-flex;
-                align-items: center;
+            .back-btn {
+                display: flex;
                 justify-content: center;
-                gap: 8px;
+                align-items: center;
+                gap: 10px;
+                margin-top: 12px;
+                padding: 12px;
+                border-radius: 14px;
                 text-decoration: none;
+                color: white;
+                background: rgba(255,255,255,0.08);
+                border: 1px solid rgba(255,255,255,0.1);
+                transition: .3s;
             }
 
-                .btn-back-hub:hover {
-                    background: #252b3a;
-                    color: #ffffff;
+                .back-btn:hover {
+                    background: rgba(255,255,255,0.15);
                 }
 
-            /* Footer copy banner placement layout matching admin workspace */
-            .system-footer-copyright {
-                position: absolute;
-                bottom: 20px;
+            .error {
+                color: #ff6b6b;
                 font-size: 13px;
-                color: rgba(255, 255, 255, 0.35);
-                letter-spacing: 0.3px;
+                text-align: center;
+                margin-top: 15px;
+            }
+
+            .footer {
+                position: absolute;
+                bottom: 0;
+                width: 100%;
+                text-align: center;
+                padding: 15px;
+                background: rgba(255,255,255,0.04);
+                border-top: 1px solid rgba(255,255,255,0.08);
+                font-size: 14px;
             }
     </style>
 </head>
 <body>
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
 
-    <div class="brand-header">
-        <svg width="24" height="28" viewBox="0 0 24 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 0L2 4V13C2 19.2 6.3 24.9 12 26.5C17.7 24.9 22 19.2 22 13V4L12 0Z" fill="#3b82f6" />
-        </svg>
-        <span class="brand-logo-text">CrimeVision</span>
+    <div class="header">
+        <div class="logo"><i class="fa-solid fa-shield-halved"></i> CrimeVision</div>
     </div>
 
-    <div class="login-card text-center">
-
-        <h2 class="login-title">Officer Login</h2>
-
-        @if (ViewBag.Error != null)
-        {
-            <div class="alert text-start small mb-3 p-2.5" style="background: rgba(220, 53, 69, 0.15); border: 1px solid rgba(220, 53, 69, 0.3); color: #f87171; border-radius: 8px;" role="alert">
-                <i class="bi bi-exclamation-triangle-fill me-1"></i> @ViewBag.Error
-            </div>
-        }
-
-        <form asp-controller="OfficerPortal" asp-action="Login" method="post" autocomplete="off">
+    <div class="login-box">
+        <h2>Officer Login</h2>
+        <form asp-controller="OfficerPortal" asp-action="Login" method="post">
             @Html.AntiForgeryToken()
-
-            <div class="mb-4 text-start">
-                <input type="text"
-                       name="CNIC"
-                       class="form-control py-2.5 px-3"
-                       placeholder="CNIC Number (e.g., 1234567890123)"
-                       maxlength="15"
-                       required />
+            <div class="input-box">
+                @Html.TextBoxFor(x => x.CNIC, new { placeholder = "CNIC Number (13 digits)", maxlength = "13", required = "required" })
+                <i class="fa-solid fa-id-card"></i>
             </div>
-
-            <button type="submit" class="btn btn-officer-auth w-100 py-2.5 mb-3">Login</button>
-
-            <a asp-controller="Home" asp-action="Index" class="btn btn-back-hub w-100 py-2.5">
-                <i class="bi bi-arrow-left"></i> Back To Home
-            </a>
+            <button type="submit" class="btn">Login</button>
+            <a href="@Url.Action("Index", "Home")" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back To Home</a>
+            @if (ViewBag.Error != null)
+            {
+                <div class="error">@ViewBag.Error</div>
+            }
         </form>
     </div>
 
-    <div class="system-footer-copyright">
-        © 2026 CrimeVision | Smart Crime Reporting & Tracking System
-    </div>
-
+    <div class="footer">© 2026 CrimeVision | Smart Crime Reporting & Tracking System</div>
 </body>
 </html>

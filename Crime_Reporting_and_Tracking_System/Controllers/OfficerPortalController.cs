@@ -1,7 +1,9 @@
 ﻿using Crime_Reporting_and_Tracking_System.Models;
+using CrimeReportingSystem.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
-using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
@@ -17,10 +19,8 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
             _configuration = configuration;
         }
 
-        // 🟢 GET: /OfficerPortal/Login
         public IActionResult Login()
         {
-            // Agar pehle se CNIC ya Email session mein hai toh direct dashboard bhej do
             if (!string.IsNullOrEmpty(HttpContext.Session.GetString("OfficerCNIC")))
             {
                 return RedirectToAction("Dashboard");
@@ -28,48 +28,37 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
             return View();
         }
 
-        // 🚨 POST: /OfficerPortal/Login
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Login(string CNIC)
+        public IActionResult Login(Officer model)
         {
-            // Check if input is empty
-            if (string.IsNullOrEmpty(CNIC))
+            if (string.IsNullOrEmpty(model.CNIC))
             {
                 ViewBag.Error = "Please enter your official CNIC Number.";
-                return View();
+                return View(model);
             }
 
-            // Input formatting clean-up (agar dashes ke sath ya baghair enter karein, tab bhi chalay)
-            string cleanCNIC = CNIC.Replace("-", "").Trim();
-
+            string cleanCNIC = model.CNIC.Replace("-", "").Trim();
             string conString = _configuration.GetConnectionString("CrimeDB");
 
             using (SqlConnection con = new SqlConnection(conString))
             {
-                // 🔥 CNIC BASED LINKING RULE: Admin jo profile add karega, uske unique CNIC par verification hogi
-                // REPLACE(CNIC, '-', '') use kiya hai taake agar database ya input mein dashes ka farq ho toh crash na ho
                 string query = "SELECT * FROM Officers WHERE REPLACE(CNIC, '-', '') = @cnic";
-
                 using (SqlCommand cmd = new SqlCommand(query, con))
                 {
                     cmd.Parameters.AddWithValue("@cnic", cleanCNIC);
-
                     con.Open();
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         if (reader.Read())
                         {
                             string status = reader["Status"]?.ToString() ?? "Active";
-
-                            // Admin Deactivation Rule Check
                             if (status.ToLower() != "active")
                             {
                                 ViewBag.Error = "Your account is deactivated by the Admin.";
-                                return View();
+                                return View(model);
                             }
 
-                            // Session Variables Mapping via Database Columns
                             HttpContext.Session.SetString("OfficerId", reader["Id"].ToString());
                             HttpContext.Session.SetString("OfficerName", reader["Name"].ToString());
                             HttpContext.Session.SetString("OfficerCNIC", reader["CNIC"].ToString());
@@ -82,15 +71,14 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                         }
                         else
                         {
-                            ViewBag.Error = "No registered Officer found with this CNIC. Please contact Admin.";
-                            return View();
+                            ViewBag.Error = "No registered Officer found with this CNIC.";
+                            return View(model);
                         }
                     }
                 }
             }
         }
 
-        // 🖥️ GET: /OfficerPortal/Dashboard
         [HttpGet]
         public IActionResult Dashboard()
         {
@@ -103,22 +91,15 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
             }
 
             List<dynamic> assignedComplaints = new List<dynamic>();
-            int totalScopeCases = 0;
-            int activeScopeCases = 0;
-            int resolvedScopeCases = 0;
-
             string conString = _configuration.GetConnectionString("CrimeDB");
 
             using (SqlConnection con = new SqlConnection(conString))
             {
-                // 🔥 JURISDICTION LINKING: Officer jis station ka hai, use sirf wahan ki complaints nazar aayengi
                 string query = "SELECT ID, CrimeType, IncidentDate, Location, Status, CitizenName FROM Complaints WHERE Location = @scope ORDER BY ID DESC";
-
                 using (SqlCommand cmd = new SqlCommand(query, con))
                 {
                     cmd.Parameters.AddWithValue("@scope", stationScope);
                     con.Open();
-
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
@@ -130,38 +111,18 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                             complaint.Add("Location", reader["Location"].ToString());
                             complaint.Add("Status", reader["Status"].ToString());
                             complaint.Add("CitizenName", reader["CitizenName"].ToString());
-
                             assignedComplaints.Add(complaint);
-
-                            totalScopeCases++;
-                            string status = reader["Status"].ToString().ToLower();
-                            if (status.Contains("progress") || status.Contains("pending") || status.Contains("approval"))
-                            {
-                                activeScopeCases++;
-                            }
-                            else if (status.Contains("resolved"))
-                            {
-                                resolvedScopeCases++;
-                            }
                         }
                     }
                 }
             }
 
             ViewBag.OfficerName = HttpContext.Session.GetString("OfficerName");
-            ViewBag.OfficerRank = HttpContext.Session.GetString("OfficerRank");
             ViewBag.StationScope = stationScope;
-            ViewBag.OfficerImage = HttpContext.Session.GetString("OfficerImage");
-
-            ViewBag.TotalCases = totalScopeCases;
-            ViewBag.ActiveCases = activeScopeCases;
-            ViewBag.ResolvedCases = resolvedScopeCases;
             ViewBag.Complaints = assignedComplaints;
-
             return View("~/Views/OfficerPortal/Dashboard.cshtml");
         }
 
-        // 🚪 GET: /OfficerPortal/Logout
         public IActionResult Logout()
         {
             HttpContext.Session.Clear();

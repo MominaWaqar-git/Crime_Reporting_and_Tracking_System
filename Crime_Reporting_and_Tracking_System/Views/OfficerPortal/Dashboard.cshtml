@@ -2,191 +2,226 @@
     Layout = null;
 }
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width" />
     <title>Officer Dashboard - CrimeVision</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
     <style>
+            :root {
+                --blue: #2563eb;
+                --purple: #9333ea;
+                --cyan: #06b6d4;
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+                font-family: 'Poppins', sans-serif;
+            }
+
             body {
-                background-color: #030712;
-                color: #f3f4f6;
-                font-family: 'Segoe UI', system-ui, sans-serif;
+                min-height: 100vh;
+                background: #050816;
+                color: white;
+                overflow-x: hidden;
+            }
+
+            /* BLOBS & HEADER/FOOTER (Same as Admin) */
+            .blob {
+                position: fixed;
+                border-radius: 50%;
+                filter: blur(120px);
+                opacity: .6;
+                z-index: 0;
+            }
+
+            .b1 {
+                width: 450px;
+                height: 450px;
+                background: var(--blue);
+                top: -120px;
+                left: -120px;
+            }
+
+            .b2 {
+                width: 450px;
+                height: 450px;
+                background: var(--purple);
+                bottom: -120px;
+                right: -120px;
+            }
+
+            .header {
+                position: fixed;
+                top: 0;
+                width: 100%;
+                padding: 18px 8%;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background: rgba(255,255,255,0.04);
+                backdrop-filter: blur(25px);
+                border-bottom: 1px solid rgba(255,255,255,0.08);
+                z-index: 10;
+            }
+
+            .logo {
+                font-size: 22px;
+                font-weight: 700;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+                .logo i {
+                    color: #60a5fa;
+                }
+
+            .container {
+                display: flex;
+                margin-top: 80px;
             }
 
             .sidebar {
-                background: #0b0f19;
-                min-height: 100vh;
-                border-right: 1px solid #1f2937;
-                padding: 25px 20px;
+                width: 260px;
+                min-height: calc(100vh - 80px);
+                padding: 20px;
+                background: rgba(255,255,255,0.05);
+                backdrop-filter: blur(20px);
+                z-index: 2;
             }
 
-            .workspace {
-                padding: 35px;
-            }
-
-            .metrics-card {
-                background: #111827;
-                border: 1px solid #1f2937;
+            .menu a {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 12px;
+                margin: 10px 0;
+                color: white;
+                text-decoration: none;
                 border-radius: 12px;
-                padding: 22px;
+                transition: .3s;
             }
 
-            .table-custom {
-                background: #111827;
-                border-radius: 12px;
-                overflow: hidden;
-                border: 1px solid #1f2937;
-            }
-
-                .table-custom th {
-                    background: #1f2937;
-                    color: #9ca3af;
-                    border: none;
-                    font-size: 13px;
-                    letter-spacing: 0.5px;
+                .menu a.active {
+                    background: linear-gradient(90deg, var(--blue), var(--purple));
                 }
 
-                .table-custom td {
-                    color: #e5e7eb;
-                    border-color: #1f2937;
-                    vertical-align: middle;
-                }
-
-            .badge-pending {
-                background: rgba(245, 158, 11, 0.2);
-                color: #fbbf24;
-                border: 1px solid rgba(245, 158, 11, 0.4);
+            .main {
+                flex: 1;
+                padding: 30px;
+                z-index: 2;
             }
 
-            .badge-resolved {
-                background: rgba(16, 185, 129, 0.2);
-                color: #34d399;
-                border: 1px solid rgba(16, 185, 129, 0.4);
+            .cards {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                gap: 20px;
             }
 
-            .officer-avatar {
-                width: 45px;
-                height: 45px;
+            .card {
+                padding: 20px;
+                border-radius: 18px;
+                background: rgba(255,255,255,0.05);
+                border: 1px solid rgba(255,255,255,0.1);
+                backdrop-filter: blur(18px);
+            }
+
+            .table-box {
+                margin-top: 30px;
+                padding: 20px;
+                border-radius: 18px;
+                background: rgba(255,255,255,0.05);
+                border: 1px solid rgba(255,255,255,0.1);
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            th, td {
+                padding: 15px;
+                border-bottom: 1px solid rgba(255,255,255,0.1);
+                text-align: left;
+            }
+
+            .footer {
+                position: fixed;
+                bottom: 0;
+                width: 100%;
+                text-align: center;
+                padding: 12px;
+                background: rgba(255,255,255,0.04);
+                border-top: 1px solid rgba(255,255,255,0.08);
+            }
+
+            .officer-info {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-bottom: 20px;
+                padding: 10px;
+                background: rgba(255,255,255,0.05);
+                border-radius: 10px;
+            }
+
+            .avatar {
+                width: 40px;
+                height: 40px;
                 border-radius: 50%;
                 object-fit: cover;
-                border: 2px solid #0284c7;
             }
     </style>
 </head>
 <body>
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="header"><div class="logo"><i class="fa-solid fa-shield-halved"></i> CrimeVision Officer</div></div>
 
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-2 sidebar">
-                <h4 class="text-info font-weight-bold mb-2">CrimeVision</h4>
-                <p class="text-muted small mb-4">Internal Field Grid</p>
-                <hr style="background-color: #1f2937;" />
+    <div class="container">
+        <div class="sidebar">
+            <div class="officer-info">
+                <img src="@Url.Content("~/uploads/" + ViewBag.OfficerImage)" class="avatar" />
+                <div><div style="font-size:12px">@ViewBag.OfficerName</div><small style="color:#60a5fa">@ViewBag.OfficerRank</small></div>
+            </div>
+            <div class="menu">
+                <a class="active" href="#"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+                <a asp-controller="OfficerPortal" asp-action="Logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            </div>
+        </div>
 
-                <div class="d-flex align-items-center gap-3 mb-4">
-                    <img src="~/uploads/@ViewBag.OfficerImage" class="officer-avatar me-2" alt="Avatar" />
-                    <div>
-                        <h6 class="mb-0 text-white font-weight-bold">@ViewBag.OfficerName</h6>
-                        <small class="text-info font-weight-bold" style="font-size: 11px;">Rank: @ViewBag.OfficerRank</small>
-                    </div>
-                </div>
+        <div class="main">
+            <div class="topbar"><h2>Tactical Workspace: @ViewBag.StationScope</h2></div>
 
-                <div class="mb-3">
-                    <span class="badge w-100 py-2 text-start bg-dark border border-secondary text-white-50">
-                        📍 Scope: @ViewBag.StationScope
-                    </span>
-                </div>
-
-                <hr style="background-color: #1f2937;" />
-                <ul class="nav flex-column mt-3">
-                    <li class="nav-item mb-2">
-                        <a class="nav-link text-white active px-2 style="background: rgba(2, 132, 199, 0.1); border-radius: 6px;" href="#">📁 Jurisdiction Cases</a>
-                    </li>
-                    <li class="nav-item mt-4">
-                        <a class="nav-link text-danger font-weight-bold" asp-controller="OfficerPortal" asp-action="Logout">🚪 Secure Sign Out</a>
-                    </li>
-                </ul>
+            <div class="cards">
+                <div class="card"><h3>@ViewBag.TotalCases</h3><p>Total Cases</p></div>
+                <div class="card"><h3>@ViewBag.ActiveCases</h3><p>Active/Pending</p></div>
+                <div class="card"><h3>@ViewBag.ResolvedCases</h3><p>Resolved</p></div>
             </div>
 
-            <div class="col-md-10 workspace">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div>
-                        <h2>Officer Tactical Workspace</h2>
-                        <p class="text-secondary small">Real-time analytical metrics for <strong>@ViewBag.StationScope Police Station</strong> division.</p>
-                    </div>
-                </div>
-
-                <div class="row g-4 mb-5">
-                    <div class="col-md-4">
-                        <div class="metrics-card">
-                            <h6 class="text-secondary text-uppercase mb-2" style="font-size: 12px; letter-spacing: 1px;">Total Region Cases</h6>
-                            <h2 class="font-weight-bold mb-0">@ViewBag.TotalCases</h2>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="metrics-card">
-                            <h6 class="text-warning text-uppercase mb-2" style="font-size: 12px; letter-spacing: 1px;">Active / Pending</h6>
-                            <h2 class="font-weight-bold mb-0 text-warning">@ViewBag.ActiveCases</h2>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="metrics-card">
-                            <h6 class="text-success text-uppercase mb-2" style="font-size: 12px; letter-spacing: 1px;">Resolved Investigations</h6>
-                            <h2 class="font-weight-bold mb-0 text-success">@ViewBag.ResolvedCases</h2>
-                        </div>
-                    </div>
-                </div>
-
-                <h5 class="mb-3 text-white-50 font-weight-light">Assigned Jurisdiction Crime Records</h5>
-                <div class="table-responsive table-custom">
-                    <table class="table mb-0">
-                        <thead>
-                            <tr>
-                                <th>CASE ID</th>
-                                <th>CRIME TYPE</th>
-                                <th>COMPLAINANT</th>
-                                <th>INCIDENT DATE</th>
-                                <th>STATION AREA</th>
-                                <th>STATUS GRID</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (ViewBag.Complaints != null && ((List<dynamic>)ViewBag.Complaints).Count > 0)
-                            {
-                                foreach (var item in ViewBag.Complaints)
-                                {
-                                    var complaint = (IDictionary<string, object>)item;
-                                    <tr>
-                                        <td class="font-weight-bold text-info">#@complaint["ID"]</td>
-                                        <td>@complaint["CrimeType"]</td>
-                                        <td>@complaint["CitizenName"]</td>
-                                        <td>@complaint["IncidentDate"]</td>
-                                        <td><span class="text-white-50">@complaint["Location"]</span></td>
-                                        <td>
-                                            @if (complaint["Status"].ToString().ToLower().Contains("resolved"))
-                                            {
-                                                <span class="badge badge-resolved px-3 py-1.5">Resolved</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge badge-pending px-3 py-1.5">@complaint["Status"]</span>
-                                            }
-                                        </td>
-                                    </tr>
-                                }
-                            }
-                            else
-                            {
-                                <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">No active crime files mapped directly to this station scope.</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
+            <div class="table-box">
+                <h3>Assigned Crime Reports</h3>
+                <table>
+                    <tr><th>ID</th><th>Crime Type</th><th>Citizen</th><th>Date</th><th>Status</th></tr>
+                    @foreach (var item in ViewBag.Complaints)
+                    {
+                        var c = (IDictionary<string, object>)item;
+                        <tr>
+                            <td>#@c["ID"]</td>
+                            <td>@c["CrimeType"]</td>
+                            <td>@c["CitizenName"]</td>
+                            <td>@c["IncidentDate"]</td>
+                            <td><span class="status">@c["Status"]</span></td>
+                        </tr>
+                    }
+                </table>
             </div>
         </div>
     </div>
-
+    <div class="footer">© 2026 CrimeVision | Smart Crime Reporting & Tracking System</div>
 </body>
 </html>
