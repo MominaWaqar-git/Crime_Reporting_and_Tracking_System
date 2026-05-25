@@ -121,26 +121,63 @@
         .action-icons a:hover {
             color: #06b6d4;
         }
+
+    /* 🔥 LIVE SEARCH BOX */
+    .search-box {
+        position: relative;
+        width: 300px;
+    }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 12px 10px 38px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.3);
+            color: white;
+            outline: none;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #aaa;
+        }
 </style>
 
 <div class="dashboard-container">
     <div class="registry-wrapper">
 
+        <!-- HEADER -->
         <div class="registry-header">
             <div>
                 <h3 style="color: white; margin: 0; font-weight: 600; font-size: 22px;">
-                    <i class="fa-solid fa-shield-halved" style="color: #06b6d4; margin-right: 8px;"></i> Officers System Registry
+                    <i class="fa-solid fa-shield-halved" style="color: #06b6d4; margin-right: 8px;"></i>
+                    Officers System Registry
                 </h3>
-                <p style="color: #9ca3af; margin: 5px 0 0 0; font-size: 13px;">Central database tracking active law enforcement personnel details.</p>
+                <p style="color: #9ca3af; margin: 5px 0 0 0; font-size: 13px;">
+                    Central database tracking active law enforcement personnel details.
+                </p>
             </div>
-            <!-- BUTTON TO NAVIGATE TO CREATE PAGE -->
+
             <a href="@Url.Action("Create", "Officers")" class="btn-add-cyber">
                 <i class="fa-solid fa-user-plus"></i> Add New Officer
             </a>
         </div>
 
+        <!-- 🔥 LIVE SEARCH ADDED -->
+        <div style="margin-bottom:15px;">
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="liveSearch" placeholder="Search officers..." />
+            </div>
+        </div>
+
+        <!-- TABLE -->
         <div style="overflow-x: auto;">
-            <table class="cyber-table">
+            <table class="cyber-table" id="officerTable">
                 <thead>
                     <tr>
                         <th>Avatar</th>
@@ -152,55 +189,66 @@
                         <th>Actions</th>
                     </tr>
                 </thead>
+
                 <tbody>
                     @if (!Model.Any())
                     {
                         <tr>
-                            <td colspan="7" style="text-align:center; color:#6b7280; padding:40px;">No records found in CrimeVision database registry.</td>
+                            <td colspan="7" style="text-align:center; color:#6b7280; padding:40px;">
+                                No records found in CrimeVision database registry.
+                            </td>
                         </tr>
                     }
-                    @foreach (var item in Model)
+                    else
                     {
-                        <tr>
-                            <td>
-                                @if (!string.IsNullOrEmpty(item.ProfilePicturePath))
-                                {
-                                    <img src="~/uploads/@item.ProfilePicturePath" class="officer-thumb" alt="Avatar" />
-                                }
-                                else
-                                {
-                                    <img src="~/uploads/default-avatar.png" class="officer-thumb" alt="Default Avatar" />
-                                }
-                            </td>
-                            <td style="font-weight:600; color:#ffffff;">
-                                @item.Name
-                                <br /><span style="font-size:11px; color:#9ca3af; font-weight:400;">@item.Email | @item.PhoneNumber</span>
-                            </td>
-                            <td><span style="color:#c084fc; font-weight:600;">@item.Rank</span></td>
-                            <td style="letter-spacing:0.5px;">@item.CNIC</td>
-                            <td>@item.StationName</td>
-                            <td>
-                                @if (item.Status == "Active")
-                                {
-                                    <span class="badge-status badge-active">Active</span>
-                                }
-                                else if (item.Status == "On Leave")
-                                {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(item.ProfilePicturePath))
+                                    {
+                                        <img src="~/uploads/@item.ProfilePicturePath" class="officer-thumb" />
+                                    }
+                                    else
+                                    {
+                                        <img src="~/uploads/default-avatar.png" class="officer-thumb" />
+                                    }
+                                </td>
 
-                                    <span class="badge-status badge-leave">On Leave</span>
-                                }
-                                else
-                                {
+                                <td>
+                                    @item.Name
+                                    <br />
+                                    <span style="font-size:11px; color:#9ca3af;">
+                                        @item.Email | @item.PhoneNumber
+                                    </span>
+                                </td>
 
-                                    <span class="badge-status badge-suspended">Suspended</span>
-                                }
-                            </td>
-                            <td class="action-icons">
-                                <a href="@Url.Action("Edit", "Officers", new { id = item.Id })" title="Modify Context"><i class="fa-solid fa-pen-to-square" style="color:#a855f7;"></i></a>
-                                <a href="@Url.Action("Details", "Officers", new { id = item.Id })" title="View Profile"><i class="fa-solid fa-eye" style="color:#60a5fa;"></i></a>
-                                <a href="@Url.Action("Delete", "Officers", new { id = item.Id })" onclick="return confirm('Are you sure to revoke this officer access?');" title="Deauthorize" style="margin-right:0;"><i class="fa-solid fa-trash" style="color:#f87171;"></i></a>
-                            </td>
-                        </tr>
+                                <td style="color:#c084fc;">@item.Rank</td>
+                                <td>@item.CNIC</td>
+                                <td>@item.StationName</td>
+
+                                <td>
+                                    @if (item.Status == "Active")
+                                    {
+                                        <span class="badge-status badge-active">Active</span>
+                                    }
+                                    else if (item.Status == "On Leave")
+                                    {
+                                        <span class="badge-status badge-leave">On Leave</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge-status badge-suspended">Suspended</span>
+                                    }
+                                </td>
+
+                                <td class="action-icons">
+                                    <a href="@Url.Action("Edit", "Officers", new { id = item.Id })"><i class="fa-solid fa-pen-to-square"></i></a>
+                                    <a href="@Url.Action("Details", "Officers", new { id = item.Id })"><i class="fa-solid fa-eye"></i></a>
+                                    <a href="@Url.Action("Delete", "Officers", new { id = item.Id })"><i class="fa-solid fa-trash"></i></a>
+                                </td>
+                            </tr>
+                        }
                     }
                 </tbody>
             </table>
@@ -208,3 +256,18 @@
 
     </div>
 </div>
+
+<!-- 🔥 LIVE SEARCH SCRIPT -->
+<script>
+    document.getElementById("liveSearch").addEventListener("keyup", function () {
+
+        let value = this.value.toLowerCase();
+        let rows = document.querySelectorAll("#officerTable tbody tr");
+
+        rows.forEach(row => {
+            let text = row.innerText.toLowerCase();
+            row.style.display = text.includes(value) ? "" : "none";
+        });
+
+    });
+</script>

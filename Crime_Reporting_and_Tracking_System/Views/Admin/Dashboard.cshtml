@@ -1,4 +1,6 @@
-﻿@{
+﻿@using System.Text.Json
+
+@{
     Layout = null;
 }
 
@@ -13,6 +15,9 @@
 
     <!-- ICONS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
+
+    <!-- CHART JS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
 
@@ -225,16 +230,24 @@
             }
 
             .card h3 {
-                font-size: 24px;
+                font-size: 28px;
+                margin-bottom: 5px;
             }
 
             .card p {
                 color: #cbd5e1;
             }
 
-        /* TABLE */
-        .table-box {
+        /* CHARTS */
+
+        .charts {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
             margin-top: 30px;
+        }
+
+        .chart-box {
             padding: 20px;
             border-radius: 18px;
             background: rgba(255,255,255,0.05);
@@ -242,46 +255,16 @@
             backdrop-filter: blur(18px);
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        canvas {
+            width: 100% !important;
+            height: 350px !important;
         }
 
-        th, td {
-            padding: 12px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
+        @@media(max-width:900px) {
 
-        th {
-            color: var(--blue);
-        }
-
-        tr {
-            transition: .3s;
-        }
-
-            tr:hover {
-                background: rgba(255,255,255,0.06);
-                transform: scale(1.01);
+            .charts {
+                grid-template-columns: 1fr;
             }
-
-        .status {
-            padding: 5px 10px;
-            border-radius: 8px;
-            font-size: 12px;
-        }
-
-        .pending {
-            background: #fbbf24;
-            color: black;
-        }
-
-        .progress {
-            background: #3b82f6;
-        }
-
-        .resolved {
-            background: #22c55e;
         }
 
         /* FOOTER */
@@ -318,20 +301,31 @@
         <!-- SIDEBAR -->
         <div class="sidebar">
             <div class="menu">
-                <a class="active" href="#"><i class="fa-solid fa-gauge"></i> Dashboard</a>
-                <a href="/Admin/CrimeReports" class=""><i class="fa-solid fa-file"></i> Crime Reports</a>
-                <a href="/Admin/Users"><i class="fa-solid fa-users"></i> Users</a>
-                <a href="/Officers" class="nav-link"><i class="fa-solid fa-users"></i> Officers</a>
 
-                <!-- === PUBLIC ALERT LINK (FIXED & MATCHED) === -->
-                <a asp-action="AlertsList" asp-controller="Admin" class="">
-                    <i class="fa-solid fa-triangle-exclamation" style="color: #ffffff; margin-right: 8px;"></i> Broadcast Alert
+                <a class="active" href="#">
+                    <i class="fa-solid fa-gauge"></i> Dashboard
                 </a>
 
-                <!-- === LOGOUT LINK === -->
+                <a href="/Admin/CrimeReports">
+                    <i class="fa-solid fa-file"></i> Crime Reports
+                </a>
+
+                <a href="/Admin/Users">
+                    <i class="fa-solid fa-users"></i> Users
+                </a>
+
+                <a href="/Officers" class="nav-link">
+                    <i class="fa-solid fa-users"></i> Officers
+                </a>
+
+                <a asp-action="AlertsList" asp-controller="Admin">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Broadcast Alert
+                </a>
+
                 <a href="@Url.Action("AdminLogin", "Account")">
                     <i class="fa-solid fa-right-from-bracket"></i> Logout
                 </a>
+
             </div>
         </div>
 
@@ -339,76 +333,72 @@
         <div class="main">
 
             <div class="topbar">
+
                 <h2>Dashboard Overview</h2>
 
                 <div class="admin-box">
                     Welcome, @Context.Session.GetString("Admin")
                 </div>
+
             </div>
 
-            <!-- CARDS -->
+            <!-- DYNAMIC CARDS -->
+
             <div class="cards">
 
                 <div class="card">
                     <i class="fa-solid fa-file"></i>
-                    <h3>120</h3>
+                    <h3>@ViewBag.TotalReports</h3>
                     <p>Total Reports</p>
                 </div>
 
                 <div class="card">
                     <i class="fa-solid fa-clock"></i>
-                    <h3>45</h3>
+                    <h3>@ViewBag.PendingCases</h3>
                     <p>Pending Cases</p>
                 </div>
 
                 <div class="card">
                     <i class="fa-solid fa-circle-check"></i>
-                    <h3>60</h3>
+                    <h3>@ViewBag.ResolvedCases</h3>
                     <p>Resolved</p>
                 </div>
 
                 <div class="card">
                     <i class="fa-solid fa-user"></i>
-                    <h3>30</h3>
+                    <h3>@ViewBag.TotalUsers</h3>
                     <p>Users</p>
                 </div>
 
             </div>
 
-            <!-- TABLE -->
-            <div class="table-box">
+            <!-- CHARTS -->
 
-                <h3 style="margin-bottom:15px;">Recent Crime Reports</h3>
+            <div class="charts">
 
-                <table>
-                    <tr>
-                        <th>ID</th>
-                        <th>Crime Type</th>
-                        <th>Location</th>
-                        <th>Status</th>
-                    </tr>
+                <!-- BAR CHART -->
 
-                    <tr>
-                        <td>1</td>
-                        <td>Theft</td>
-                        <td>Islamabad</td>
-                        <td><span class="status pending">Pending</span></td>
-                    </tr>
+                <div class="chart-box">
 
-                    <tr>
-                        <td>2</td>
-                        <td>Cyber Crime</td>
-                        <td>Lahore</td>
-                        <td><span class="status progress">In Progress</span></td>
-                    </tr>
+                    <h3 style="margin-bottom:20px;">
+                        Monthly Crime Reports
+                    </h3>
 
-                    <tr>
-                        <td>3</td>
-                        <td>Assault</td>
-                        <td>Karachi</td>
-                        <td><span class="status resolved">Resolved</span></td>
-                    </tr>
-                </table>
+                    <canvas id="crimeChart"></canvas>
+
+                </div>
+
+                <!-- PIE CHART -->
+
+                <div class="chart-box">
+
+                    <h3 style="margin-bottom:20px;">
+                        Case Status
+                    </h3>
+
+                    <canvas id="statusChart"></canvas>
+
+                </div>
 
             </div>
 
@@ -419,6 +409,149 @@
     <div class="footer">
         © 2026 CrimeVision | Smart Crime Reporting & Tracking System
     </div>
+
+    ```cshtml
+    <script>
+
+        // ================= BAR CHART =================
+
+        const crimeChart = new Chart(
+            document.getElementById('crimeChart'),
+            {
+                type: 'bar',
+                data: {
+                    labels: @Html.Raw(JsonSerializer.Serialize((List<string>)ViewBag.CrimeTypes)),
+                    datasets: [{
+                        label: 'Crime Reports',
+                        data: @Html.Raw(JsonSerializer.Serialize((List<int>)ViewBag.CrimeTotals)),
+
+                        // NEW COLORS
+
+                        backgroundColor: [
+                            '#ff6b6b',
+                            '#feca57',
+                            '#1dd1a1',
+                            '#54a0ff',
+                            '#5f27cd',
+                            '#ee5253',
+                            '#10ac84',
+                            '#341f97'
+                        ],
+
+                        borderRadius: 12,
+                        borderSkipped: false
+                    }]
+                },
+
+                options: {
+
+                    responsive: true,
+
+                    plugins: {
+
+                        legend: {
+                            labels: {
+                                color: 'white',
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        }
+                    },
+
+                    scales: {
+
+                        y: {
+                            ticks: {
+                                color: 'white',
+                                font: {
+                                    size: 13
+                                }
+                            },
+
+                            grid: {
+                                color: 'rgba(255,255,255,0.1)'
+                            }
+                        },
+
+                        x: {
+                            ticks: {
+                                color: 'white',
+                                font: {
+                                    size: 13
+                                }
+                            },
+
+                            grid: {
+                                color: 'rgba(255,255,255,0.05)'
+                            }
+                        }
+                    }
+                }
+            }
+        );
+
+
+
+        // ================= PIE CHART =================
+
+        const statusChart = new Chart(
+            document.getElementById('statusChart'),
+            {
+                type: 'doughnut',
+
+                data: {
+
+                    labels: ['Pending', 'Resolved', 'In Progress'],
+
+                    datasets: [{
+                        data: [
+                            @ViewBag.PendingCases,
+                            @ViewBag.ResolvedCases,
+                            @ViewBag.InProgressCases
+                        ],
+
+                        backgroundColor: [
+                            '#f39c12',
+                            '#2ecc71',
+                            '#3498db'
+                        ],
+
+                        borderWidth: 2,
+                        borderColor: '#111827'
+                    }]
+                },
+
+                options: {
+
+                    responsive: true,
+
+                    plugins: {
+
+                        // WHITE TEXT
+
+                        legend: {
+
+                            position: 'bottom',
+
+                            labels: {
+
+                                color: 'white',
+
+                                padding: 20,
+
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        );
+
+    </script>
 
 </body>
 </html>

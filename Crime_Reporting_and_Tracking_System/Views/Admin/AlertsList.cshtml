@@ -1,11 +1,13 @@
 ﻿@model IEnumerable<Crime_Reporting_and_Tracking_System.Models.PublicAlert>
+
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     ViewData["Title"] = "Public Security Alerts Registry";
 }
 
 <style>
-    /* Premium Futuristic Container matching exact theme */
+
+    /* Premium Futuristic Container */
     .registry-wrapper {
         max-width: 1100px;
         margin: 20px auto;
@@ -26,21 +28,63 @@
             right: -150px;
             width: 300px;
             height: 300px;
-            background: rgba(239, 68, 68, 0.12); /* Crimson cyber glow */
+            background: rgba(239, 68, 68, 0.12);
             filter: blur(100px);
             border-radius: 50%;
             pointer-events: none;
         }
 
+    /* Header */
     .registry-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         padding-bottom: 20px;
         margin-bottom: 30px;
     }
 
+    /* Search Box */
+    .search-box {
+        position: relative;
+        width: 320px;
+    }
+
+        .search-box input {
+            width: 100%;
+            padding: 13px 16px 13px 45px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            border-radius: 14px;
+            color: #fff;
+            outline: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.08);
+        }
+
+            .search-box input:focus {
+                border-color: #ef4444;
+                box-shadow: 0 0 18px rgba(239, 68, 68, 0.35);
+                background: rgba(15, 23, 42, 1);
+            }
+
+            .search-box input::placeholder {
+                color: #94a3b8;
+            }
+
+        .search-box i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #ef4444;
+            font-size: 14px;
+        }
+
+    /* Table */
     .cyber-table-container {
         width: 100%;
         overflow-x: auto;
@@ -53,7 +97,7 @@
     }
 
         .cyber-table th {
-            color: #f87171; /* Alert theme coral red */
+            color: #f87171;
             font-weight: 600;
             font-size: 13px;
             text-transform: uppercase;
@@ -70,7 +114,7 @@
         }
 
         .cyber-table tr:hover {
-            background: rgba(255, 255, 255, 0.02);
+            background: rgba(255, 255, 255, 0.03);
         }
 
     /* Badge Levels */
@@ -106,7 +150,7 @@
         border: 1px solid rgba(59, 130, 246, 0.4);
     }
 
-    /* Premium Button Style */
+    /* Button */
     .btn-create-cyber {
         background: linear-gradient(90deg, #dc2626 0%, #ef4444 100%);
         color: white;
@@ -130,6 +174,7 @@
             box-shadow: 0 6px 20px rgba(220, 38, 38, 0.5);
         }
 
+    /* Success Message */
     .status-success {
         padding: 14px;
         border-radius: 12px;
@@ -139,31 +184,62 @@
         color: #34d399;
         border: 1px solid rgba(16, 185, 129, 0.2);
     }
+
 </style>
 
 <div class="registry-wrapper">
+
+    <!-- Header -->
     <div class="registry-header">
+
         <div>
-            <h3 style="color: white; margin: 0 0 6px 0; font-weight: 600; font-size: 22px;">Public Security Alerts</h3>
-            <p style="color: #9ca3af; font-size: 14px; margin: 0;">Active security broadcasts currently deployed on the civilian network.</p>
+            <h3 style="color: white; margin: 0 0 6px 0; font-weight: 600; font-size: 22px;">
+                Public Security Alerts
+            </h3>
+
+            <p style="color: #9ca3af; font-size: 14px; margin: 0;">
+                Active security broadcasts currently deployed on the civilian network.
+            </p>
         </div>
-        <div>
-            <!-- Button to open the Create Alert Page -->
-            <a asp-action="CreateAlert" asp-controller="Admin" class="btn-create-cyber">
-                <i class="fa-solid fa-plus"></i> Create New Alert
+
+        <div style="display:flex; align-items:center; gap:15px; flex-wrap:wrap;">
+
+            <!-- Live Search -->
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+
+                <input type="text"
+                       id="liveSearch"
+                       placeholder="Search alerts..." />
+            </div>
+
+            <!-- Create Button -->
+            <a asp-action="CreateAlert"
+               asp-controller="Admin"
+               class="btn-create-cyber">
+
+                <i class="fa-solid fa-plus"></i>
+                Create New Alert
+
             </a>
+
         </div>
+
     </div>
 
     @if (TempData["SuccessMessage"] != null)
     {
         <div class="status-success">
-            <i class="fa-solid fa-circle-check" style="margin-right: 6px;"></i> @TempData["SuccessMessage"]
+            <i class="fa-solid fa-circle-check" style="margin-right: 6px;"></i>
+            @TempData["SuccessMessage"]
         </div>
     }
 
+    <!-- Table -->
     <div class="cyber-table-container">
+
         <table class="cyber-table">
+
             <thead>
                 <tr>
                     <th>Alert Title</th>
@@ -173,42 +249,95 @@
                     <th>Image</th>
                 </tr>
             </thead>
-            <tbody>
+
+            <tbody id="alertsTable">
+
                 @if (Model != null && Model.Any())
                 {
                     foreach (var alert in Model)
                     {
                         <tr>
-                            <td style="font-weight: 500;">@alert.Title</td>
+
+                            <td style="font-weight: 500;">
+                                @alert.Title
+                            </td>
+
                             <td>
                                 <span class="badge-alert @(alert.AlertLevel == "Critical" ? "badge-critical" : alert.AlertLevel == "High" ? "badge-high" : alert.AlertLevel == "Medium" ? "badge-medium" : "badge-low")">
                                     @alert.AlertLevel
                                 </span>
                             </td>
+
                             <td>@alert.Location</td>
-                            <td>@alert.DateCreated?.ToString("dd MMM yyyy, hh:mm tt")</td>
+
                             <td>
+                                @alert.DateCreated?.ToString("dd MMM yyyy, hh:mm tt")
+                            </td>
+
+                            <td>
+
                                 @if (!string.IsNullOrEmpty(alert.AttachmentPath))
                                 {
-                                    <span style="color: #34d399;"><i class="fa-solid fa-image"></i> Attached</span>
+                                    <span style="color: #34d399;">
+                                        <i class="fa-solid fa-image"></i>
+                                        Attached
+                                    </span>
                                 }
                                 else
                                 {
-                                    <span style="color: #64748b;">No Image</span>
+                                    <span style="color: #64748b;">
+                                        No Image
+                                    </span>
                                 }
+
                             </td>
+
                         </tr>
                     }
                 }
                 else
                 {
                     <tr>
-                        <td colspan="5" style="text-align: center; color: #9ca3af; padding: 30px;">
+                        <td colspan="5"
+                            style="text-align:center; color:#9ca3af; padding:30px;">
+
                             No active public security alerts found in the database.
+
                         </td>
                     </tr>
                 }
+
             </tbody>
+
         </table>
+
     </div>
+
 </div>
+
+<!-- LIVE SEARCH SCRIPT -->
+<script>
+
+    document.getElementById("liveSearch")
+        .addEventListener("keyup", function () {
+
+            let value = this.value.toLowerCase();
+
+            let rows = document.querySelectorAll("#alertsTable tr");
+
+            rows.forEach(function (row) {
+
+                let text = row.innerText.toLowerCase();
+
+                if (text.includes(value)) {
+                    row.style.display = "";
+                }
+                else {
+                    row.style.display = "none";
+                }
+
+            });
+
+        });
+
+</script>

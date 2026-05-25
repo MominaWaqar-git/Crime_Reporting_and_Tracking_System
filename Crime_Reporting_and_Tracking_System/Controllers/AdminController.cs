@@ -33,10 +33,127 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
 
         // ==========================================
         // 1. DASHBOARD OVERVIEW
-        // ==========================================
-        public IActionResult Dashboard()
+        // =========================================
+        public ActionResult Dashboard()
         {
-            if (!IsAdminAuthenticated()) return RedirectToAction("AdminLogin", "Account");
+            // CARDS VARIABLES
+
+            int totalReports = 0;
+            int pendingCases = 0;
+            int resolvedCases = 0;
+            int inProgressCases = 0;
+            int totalUsers = 0;
+
+            // CHART LISTS
+
+            List<string> crimeTypes = new List<string>();
+            List<int> crimeTotals = new List<int>();
+
+
+            // CONNECTION
+
+            SqlConnection con = new SqlConnection(_connectionString);
+
+            con.Open();
+
+
+            // ================= TOTAL REPORTS =================
+
+            SqlCommand totalCmd = new SqlCommand(
+                "SELECT COUNT(*) FROM Complaints",
+                con
+            );
+
+            totalReports = Convert.ToInt32(totalCmd.ExecuteScalar());
+
+
+            // ================= PENDING CASES =================
+
+            SqlCommand pendingCmd = new SqlCommand(
+                "SELECT COUNT(*) FROM Complaints WHERE Status='Pending'",
+                con
+            );
+
+            pendingCases = Convert.ToInt32(pendingCmd.ExecuteScalar());
+
+
+            // ================= RESOLVED / COMPLETED CASES =================
+            // Dono statuses count honge:
+            // Resolved OR Complete
+
+            SqlCommand resolvedCmd = new SqlCommand(
+                @"SELECT COUNT(*) 
+          FROM Complaints 
+          WHERE Status='Resolved'
+          OR Status='Complete'",
+                con
+            );
+
+            resolvedCases = Convert.ToInt32(resolvedCmd.ExecuteScalar());
+
+
+            // ================= IN PROGRESS CASES =================
+
+            SqlCommand progressCmd = new SqlCommand(
+                "SELECT COUNT(*) FROM Complaints WHERE Status='In Progress'",
+                con
+            );
+
+            inProgressCases = Convert.ToInt32(progressCmd.ExecuteScalar());
+
+
+            // ================= TOTAL USERS =================
+
+            SqlCommand usersCmd = new SqlCommand(
+                "SELECT COUNT(*) FROM Users",
+                con
+            );
+
+            totalUsers = Convert.ToInt32(usersCmd.ExecuteScalar());
+
+
+            // ================= CHART DATA =================
+
+            string chartQuery = @"
+        SELECT CrimeType, COUNT(*) AS Total
+        FROM Complaints
+        GROUP BY CrimeType";
+
+            SqlCommand chartCmd = new SqlCommand(chartQuery, con);
+
+            SqlDataReader dr = chartCmd.ExecuteReader();
+
+            while (dr.Read())
+            {
+                crimeTypes.Add(dr["CrimeType"].ToString());
+
+                crimeTotals.Add(
+                    Convert.ToInt32(dr["Total"])
+                );
+            }
+
+            dr.Close();
+
+            con.Close();
+
+
+            // ================= VIEWBAG =================
+
+            ViewBag.TotalReports = totalReports;
+
+            ViewBag.PendingCases = pendingCases;
+
+            ViewBag.ResolvedCases = resolvedCases;
+
+            ViewBag.InProgressCases = inProgressCases;
+
+            ViewBag.TotalUsers = totalUsers;
+
+            ViewBag.CrimeTypes = crimeTypes;
+
+            ViewBag.CrimeTotals = crimeTotals;
+
+
             return View();
         }
 
@@ -310,68 +427,162 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
         [HttpGet]
         public IActionResult CrimeReports()
         {
-            if (!IsAdminAuthenticated()) return RedirectToAction("AdminLogin", "Account");
+            if (!IsAdminAuthenticated())
+                return RedirectToAction("AdminLogin", "Account");
 
             List<dynamic> allComplaints = new List<dynamic>();
 
             using (SqlConnection con = new SqlConnection(_connectionString))
             {
                 string query = @"
-            SELECT c.ID, c.CrimeType, c.IncidentDate, c.Location, c.Status, c.Description, 
-                   c.CitizenName, c.CitizenPhone, u.ProfileImage,
-                   STRING_AGG(o.Name + ' (' + o.Rank + ')', ', ') AS AssignedOfficers
-            FROM Complaints c
-            LEFT JOIN Users u ON c.CitizenPhone = u.PhoneNumber
-            LEFT JOIN ComplaintAssignments ca ON c.ID = ca.ComplaintId
-            LEFT JOIN Officers o ON ca.OfficerId = o.Id
-            GROUP BY c.ID, c.CrimeType, c.IncidentDate, c.Location, c.Status, c.Description, c.CitizenName, c.CitizenPhone, u.ProfileImage
-            ORDER BY c.ID DESC";
+        SELECT 
+            c.ID,
+            c.CrimeType,
+            c.IncidentDate,
+            c.Location,
+            c.Status,
+            c.Description,
+            c.CitizenName,
+            c.CitizenPhone,
+            u.ProfileImage,
+
+            -- Evidence
+            MAX(e.FilePath) AS EvidenceFile,
+
+            -- Officers
+            STRING_AGG(o.Name + ' (' + o.Rank + ')', ', ') AS AssignedOfficers
+
+        FROM Complaints c
+
+        LEFT JOIN Users u
+            ON c.CitizenPhone = u.PhoneNumber
+
+        LEFT JOIN ComplaintAssignments ca
+            ON c.ID = ca.ComplaintId
+
+        LEFT JOIN Officers o
+            ON ca.OfficerId = o.Id
+
+        LEFT JOIN Evidence e
+            ON c.ID = e.ComplaintId
+
+        GROUP BY 
+            c.ID,
+            c.CrimeType,
+            c.IncidentDate,
+            c.Location,
+            c.Status,
+            c.Description,
+            c.CitizenName,
+            c.CitizenPhone,
+            u.ProfileImage
+
+        ORDER BY c.ID DESC";
 
                 using (SqlCommand cmd = new SqlCommand(query, con))
                 {
                     con.Open();
+
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
                         {
                             var complaint = new System.Dynamic.ExpandoObject() as IDictionary<string, object>;
-                            complaint.Add("ID", reader["ID"]);
-                            complaint.Add("CrimeType", reader["CrimeType"] != DBNull.Value ? reader["CrimeType"].ToString() : "N/A");
 
-                            string formattedDate = reader["IncidentDate"] != DBNull.Value
+                            complaint.Add("ID", reader["ID"]);
+
+                            complaint.Add("CrimeType",
+                                reader["CrimeType"] != DBNull.Value
+                                ? reader["CrimeType"].ToString()
+                                : "N/A");
+
+                            string formattedDate =
+                                reader["IncidentDate"] != DBNull.Value
                                 ? Convert.ToDateTime(reader["IncidentDate"]).ToString("dd/MM/yyyy")
                                 : "N/A";
+
                             complaint.Add("IncidentDate", formattedDate);
 
-                            complaint.Add("Location", reader["Location"] != DBNull.Value ? reader["Location"].ToString() : "N/A");
-                            complaint.Add("Status", reader["Status"] != DBNull.Value ? reader["Status"].ToString() : "Pending");
-                            complaint.Add("Description", reader["Description"] != DBNull.Value ? reader["Description"].ToString() : "");
-                            complaint.Add("FullName", reader["CitizenName"] != DBNull.Value ? reader["CitizenName"].ToString() : "Anonymous");
-                            complaint.Add("PhoneNumber", reader["CitizenPhone"] != DBNull.Value ? reader["CitizenPhone"].ToString() : "N/A");
+                            complaint.Add("Location",
+                                reader["Location"] != DBNull.Value
+                                ? reader["Location"].ToString()
+                                : "N/A");
 
-                            // --- IMAGE PATH CORRECTION LOGIC ---
-                            string dbImagePath = reader["ProfileImage"] != DBNull.Value ? reader["ProfileImage"].ToString() : "";
+                            complaint.Add("Status",
+                                reader["Status"] != DBNull.Value
+                                ? reader["Status"].ToString()
+                                : "Pending");
+
+                            complaint.Add("Description",
+                                reader["Description"] != DBNull.Value
+                                ? reader["Description"].ToString()
+                                : "");
+
+                            complaint.Add("FullName",
+                                reader["CitizenName"] != DBNull.Value
+                                ? reader["CitizenName"].ToString()
+                                : "Anonymous");
+
+                            complaint.Add("PhoneNumber",
+                                reader["CitizenPhone"] != DBNull.Value
+                                ? reader["CitizenPhone"].ToString()
+                                : "N/A");
+
+                            // =========================================
+                            // CITIZEN IMAGE PATH FIX
+                            // =========================================
+
+                            string dbImagePath =
+                                reader["ProfileImage"] != DBNull.Value
+                                ? reader["ProfileImage"].ToString()
+                                : "";
+
                             string finalImagePath = "";
 
                             if (!string.IsNullOrEmpty(dbImagePath))
                             {
-                                // Agar path pehle se sahi format (/ ya http) mein hai to wahi rehne dein
-                                if (dbImagePath.StartsWith("/") || dbImagePath.StartsWith("~") || dbImagePath.StartsWith("http"))
+                                if (dbImagePath.StartsWith("/") ||
+                                    dbImagePath.StartsWith("~") ||
+                                    dbImagePath.StartsWith("http"))
                                 {
                                     finalImagePath = dbImagePath;
                                 }
                                 else
                                 {
-                                    // AGAR DATABASE MEIN SIRF FILE NAME HAI (e.g. "my-pic.jpg"):
-                                    // To aap apne wwwroot ke folder ka naam yahan likhein (Misaal ke tor par '/uploads/')
                                     finalImagePath = "/uploads/" + dbImagePath;
                                 }
                             }
 
                             complaint.Add("CitizenImage", finalImagePath);
-                            // ------------------------------------
 
-                            complaint.Add("AssignedOfficers", reader["AssignedOfficers"] != DBNull.Value ? reader["AssignedOfficers"].ToString() : "");
+                            // =========================================
+                            // EVIDENCE FILE PATH FIX
+                            // =========================================
+
+                            string evidencePath = "";
+
+                            if (reader["EvidenceFile"] != DBNull.Value)
+                            {
+                                evidencePath = reader["EvidenceFile"].ToString();
+
+                                // Agar database me sirf filename save hai
+                                if (!evidencePath.StartsWith("/") &&
+                                    !evidencePath.StartsWith("http"))
+                                {
+                                    evidencePath = "/uploads/evidence/" + evidencePath;
+                                }
+                            }
+
+                            complaint.Add("EvidenceFile", evidencePath);
+
+                            // =========================================
+                            // ASSIGNED OFFICERS
+                            // =========================================
+
+                            complaint.Add("AssignedOfficers",
+                                reader["AssignedOfficers"] != DBNull.Value
+                                ? reader["AssignedOfficers"].ToString()
+                                : "");
 
                             allComplaints.Add(complaint);
                         }
@@ -379,14 +590,21 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                 }
             }
 
-            // Dropdown ke liye Officers ki list
+            // =========================================
+            // OFFICERS DROPDOWN
+            // =========================================
+
             List<dynamic> officersList = new List<dynamic>();
+
             using (SqlConnection con2 = new SqlConnection(_connectionString))
             {
-                string officerQuery = "SELECT Id, Name, Rank FROM Officers WHERE Status = 'Active' ORDER BY Name ASC";
+                string officerQuery =
+                    "SELECT Id, Name, Rank FROM Officers WHERE Status = 'Active' ORDER BY Name ASC";
+
                 using (SqlCommand cmd2 = new SqlCommand(officerQuery, con2))
                 {
                     con2.Open();
+
                     using (SqlDataReader reader2 = cmd2.ExecuteReader())
                     {
                         while (reader2.Read())
@@ -394,7 +612,10 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                             officersList.Add(new
                             {
                                 Id = Convert.ToInt32(reader2["Id"]),
-                                FullName = reader2["Name"].ToString() + " (" + reader2["Rank"].ToString() + ")"
+                                FullName = reader2["Name"].ToString()
+                                           + " ("
+                                           + reader2["Rank"].ToString()
+                                           + ")"
                             });
                         }
                     }
