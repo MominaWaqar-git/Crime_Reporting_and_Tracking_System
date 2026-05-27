@@ -1,130 +1,201 @@
 ﻿@{
-    Layout = null; 
-}
-<!DOCTYPE html>
+    Layout = null;
+}<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Citizen Access Portal - CrimeVision</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
     <style>
-            body {
+            * {
                 margin: 0;
                 padding: 0;
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
-                color: #ffffff;
+                box-sizing: border-box;
+                font-family: 'Poppins', sans-serif;
+            }
+
+            body {
+                min-height: 100vh;
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                min-height: 100vh;
+                background: #050816;
                 overflow: hidden;
+                color: white;
             }
 
-            .login-container {
-                background: rgba(15, 23, 42, 0.6);
-                border: 1px solid rgba(255, 255, 255, 0.05);
-                border-radius: 24px;
-                padding: 40px;
+            /* BACKGROUND NEON BLOBS */
+            .blob {
+                position: absolute;
+                border-radius: 50%;
+                filter: blur(120px);
+                opacity: .6;
+                z-index: 1;
+            }
+
+            .b1 {
+                width: 400px;
+                height: 400px;
+                background: #2563eb;
+                top: -120px;
+                left: -120px;
+            }
+
+            .b2 {
+                width: 400px;
+                height: 400px;
+                background: #9333ea;
+                bottom: -120px;
+                right: -120px;
+            }
+
+            /* HEADER */
+            .header {
+                position: absolute;
+                top: 0;
                 width: 100%;
-                max-width: 420px;
-                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+                padding: 18px 8%;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background: rgba(255,255,255,0.05);
                 backdrop-filter: blur(20px);
-                box-sizing: border-box;
+                border-bottom: 1px solid rgba(255,255,255,0.1);
+                z-index: 2;
             }
 
-            .brand-header {
-                text-align: center;
-                margin-bottom: 30px;
-            }
-
-            .brand-logo {
-                font-size: 28px;
+            .logo {
+                font-size: 26px;
                 font-weight: 700;
-                color: #ffffff;
-                margin-bottom: 8px;
-                letter-spacing: 0.5px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
             }
 
-                .brand-logo span {
-                    color: #06b6d4;
+                .logo i {
+                    color: #60a5fa;
+                }
+
+            /* GLASSMORPHISM LOGIN BOX */
+            .login-box {
+                width: 420px;
+                padding: 45px;
+                border-radius: 30px;
+                background: rgba(255, 255, 255, 0.06);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                backdrop-filter: blur(20px);
+                box-shadow: 0 20px 50px rgba(0,0,0,.5);
+                z-index: 2;
+            }
+
+                .login-box h2 {
+                    text-align: center;
+                    margin-bottom: 8px;
+                    font-size: 32px;
+                    font-weight: 600;
                 }
 
             .brand-subtitle {
                 color: #9ca3af;
                 font-size: 13px;
-                margin: 0;
+                text-align: center;
+                margin-bottom: 25px;
             }
 
             .form-group {
                 margin-bottom: 20px;
-                position: relative;
             }
 
                 .form-group label {
                     display: block;
-                    color: #9ca3af;
+                    color: #cbd5e1;
                     font-size: 12px;
                     margin-bottom: 8px;
                     text-transform: uppercase;
                     letter-spacing: 0.5px;
                 }
 
-            .input-wrapper {
+            .input-box {
                 position: relative;
             }
 
-                .input-wrapper i {
+                .input-box input {
+                    width: 100%;
+                    padding: 15px 15px 15px 45px;
+                    border-radius: 14px;
+                    border: 1px solid rgba(255,255,255,0.1);
+                    outline: none;
+                    background: rgba(255,255,255,0.08);
+                    color: white;
+                    font-size: 14px;
+                    transition: .3s;
+                }
+
+                    .input-box input:focus {
+                        border-color: #60a5fa;
+                        background: rgba(255, 255, 255, 0.12);
+                    }
+
+                .input-box i {
                     position: absolute;
                     left: 15px;
                     top: 50%;
                     transform: translateY(-50%);
-                    color: #06b6d4;
+                    color: #60a5fa;
                     font-size: 16px;
                 }
 
-            .form-control {
+            /* GRADIENT BUTTON */
+            .btn {
                 width: 100%;
-                background: rgba(255, 255, 255, 0.03);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 12px;
-                padding: 14px 15px 14px 45px;
-                color: #ffffff;
-                font-size: 14px;
-                outline: none;
-                transition: all 0.3s ease;
-                box-sizing: border-box;
-            }
-
-                .form-control:focus {
-                    border-color: #06b6d4;
-                    box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
-                    background: rgba(255, 255, 255, 0.05);
-                }
-
-            .btn-login {
-                width: 100%;
-                background: linear-gradient(90deg, #06b6d4 0%, #2563eb 100%);
-                color: white;
+                padding: 15px;
                 border: none;
-                border-radius: 12px;
-                padding: 14px;
-                font-size: 15px;
+                border-radius: 14px;
+                background: linear-gradient(135deg, #2563eb, #9333ea);
+                color: white;
                 font-weight: 600;
+                font-size: 15px;
                 cursor: pointer;
-                transition: all 0.3s ease;
-                box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
+                transition: .3s;
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
                 margin-top: 10px;
             }
 
-                .btn-login:hover {
-                    transform: translateY(-1px);
-                    box-shadow: 0 6px 20px rgba(6, 182, 212, 0.5);
+                .btn:hover {
+                    transform: translateY(-3px);
+                    box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
                 }
 
+            /* PREMIUM BACK BUTTON */
+            .back-btn {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 10px;
+                margin-top: 15px;
+                padding: 15px;
+                border-radius: 14px;
+                text-decoration: none;
+                color: white;
+                background: rgba(255,255,255,0.08);
+                border: 1px solid rgba(255,255,255,0.1);
+                font-weight: 500;
+                font-size: 14px;
+                transition: .3s;
+            }
+
+                .back-btn:hover {
+                    transform: translateY(-3px);
+                    background: rgba(255,255,255,0.15);
+                    box-shadow: 0 10px 20px rgba(255, 255, 255, 0.05);
+                }
+
+            /* SWITCH PROMPT */
             .switch-prompt {
                 text-align: center;
                 margin-top: 25px;
@@ -133,57 +204,100 @@
             }
 
                 .switch-prompt a {
-                    color: #06b6d4;
+                    color: #60a5fa;
                     text-decoration: none;
                     font-weight: 600;
-                    transition: color 0.2s;
+                    transition: .2s;
                 }
 
                     .switch-prompt a:hover {
-                        color: #2563eb;
+                        color: #a855f7;
                         text-decoration: underline;
                     }
+
+            .error-container {
+                color: #ff6b6b;
+                background: rgba(255, 107, 107, 0.1);
+                border: 1px solid rgba(255, 107, 107, 0.2);
+                padding: 12px;
+                border-radius: 12px;
+                font-size: 13px;
+                margin-bottom: 20px;
+                text-align: center;
+            }
+
+            /* FOOTER */
+            .footer {
+                position: absolute;
+                bottom: 0;
+                width: 100%;
+                text-align: center;
+                padding: 15px;
+                background: rgba(255,255,255,0.04);
+                border-top: 1px solid rgba(255,255,255,0.08);
+                z-index: 2;
+                font-size: 13px;
+                color: #9ca3af;
+            }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="brand-header">
-            <div class="brand-logo"><i class="fa-solid fa-shield-halved" style="color: #06b6d4; margin-right: 8px;"></i>Crime<span>Vision</span></div>
-            <p class="brand-subtitle">Secure Civilian Authentication Node</p>
+
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+
+    <div class="header">
+        <div class="logo">
+            <i class="fa-solid fa-shield-halved"></i>
+            CrimeVision
         </div>
+    </div>
+
+    <div class="login-box">
+        <h2>Citizen Login</h2>
+        <p class="brand-subtitle">Secure Civilian Authentication Node</p>
 
         <form action="@Url.Action("UserLogin", "Account")" method="post">
             @Html.AntiForgeryToken()
 
             @if (ViewBag.Error != null)
             {
-                <div style="color: #ef4444; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); padding: 12px; border-radius: 12px; font-size: 13px; margin-bottom: 20px; text-align: center; font-family: inherit;">
+                <div class="error-container">
                     <i class="fa-solid fa-circle-exclamation" style="margin-right: 6px;"></i> @ViewBag.Error
                 </div>
             }
 
             <div class="form-group">
                 <label>CNIC Number / Email</label>
-                <div class="input-wrapper">
+                <div class="input-box">
                     <i class="fa-solid fa-id-card"></i>
-                    <input type="text" name="Identifier" class="form-control" placeholder="e.g. 37405-XXXXXXX-X or email" required autocomplete="off" />
+                    <input type="text" name="Identifier" placeholder="e.g. 37405-XXXXXXX-X or email" required autocomplete="off" />
                 </div>
             </div>
 
             <div class="form-group">
                 <label>Security Password</label>
-                <div class="input-wrapper">
+                <div class="input-box">
                     <i class="fa-solid fa-lock"></i>
-                    <input type="password" name="Password" class="form-control" placeholder="••••••••" required />
+                    <input type="password" name="Password" placeholder="••••••••" required />
                 </div>
             </div>
 
-            <button type="submit" class="btn-login">Authenticate Access</button>
+            <button type="submit" class="btn">Authenticate Access</button>
+
+            <a href="@Url.Action("Index", "Home")" class="back-btn">
+                <i class="fa-solid fa-arrow-left"></i>
+                Back To Home
+            </a>
         </form>
 
         <div class="switch-prompt">
             Don't have an identity profile? <a href="@Url.Action("UserRegister", "Account")">Register Here</a>
         </div>
+    </div>
+
+    <div class="footer">
+        © 2026 CrimeVision | Smart Crime Reporting & Tracking System
     </div>
 </body>
 </html>
