@@ -593,5 +593,44 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
 
             return RedirectToAction("ProfileSettings");
         }
+
+        // ==============================================================
+        // 🚀 NEWLY ADDED: LOGOUT AND DELETE ACCOUNT METHODS
+        // ==============================================================
+
+        // 🟢 User / Admin Logout Action
+        [HttpGet]
+        public IActionResult LogOut()
+        {
+            HttpContext.Session.Clear(); // Clears all structural storage tokens instantly
+            return RedirectToAction("UserLogin", "Account");
+        }
+
+        // 🔴 Permanent Account Erasure Process
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteAccount()
+        {
+            string userEmail = HttpContext.Session.GetString("UserEmail");
+            if (string.IsNullOrEmpty(userEmail)) return RedirectToAction("UserLogin");
+
+            string conString = _configuration.GetConnectionString("CrimeDB");
+
+            using (SqlConnection con = new SqlConnection(conString))
+            {
+                string query = "DELETE FROM Users WHERE Email = @email";
+
+                using (SqlCommand cmd = new SqlCommand(query, con))
+                {
+                    cmd.Parameters.AddWithValue("@email", userEmail);
+                    con.Open();
+                    cmd.ExecuteNonQuery();
+                }
+            }
+
+            HttpContext.Session.Clear(); // Erasing configuration state post execution
+            TempData["SuccessMessage"] = "Your account has been permanently deleted.";
+            return RedirectToAction("UserLogin", "Account");
+        }
     }
 }

@@ -365,7 +365,8 @@
                     <i class="fa-solid fa-pen-to-square" style="color: var(--cyan);"></i> Lodge Official Complaint / Incident Report
                 </h3>
 
-                <form asp-action="SubmitComplaint" asp-controller="Account" method="post">
+                <!-- NOTE: enctype added for file uploading support -->
+                <form asp-action="SubmitComplaint" asp-controller="Account" method="post" enctype="multipart/form-data">
                     @Html.AntiForgeryToken()
                     <div class="form-grid">
                         
@@ -393,6 +394,12 @@
                         <div class="form-group full-width">
                             <label>Detailed Description of the Event</label>
                             <textarea class="form-control" name="Description" rows="5" placeholder="Provide complete sequence of the event, any identifiable marks, or suspect details..." required></textarea>
+                        </div>
+
+                        <!-- NEWLY ADDED EVIDENCE UPLOAD FIELD -->
+                        <div class="form-group full-width">
+                            <label><i class="fa-solid fa-paperclip" style="color: var(--cyan);"></i> Upload Proof / Evidence File (Optional)</label>
+                            <input type="file" class="form-control" name="EvidenceFile" style="padding: 8px;" />
                         </div>
 
                         <div class="form-group full-width" style="margin-top: 10px;">
@@ -424,14 +431,12 @@
                         {
                             foreach (var complaint in ViewBag.Complaints)
                             {
-                                // Handle data map depending on whether you passed a DataRow or dynamic object
                                 var row = complaint as System.Data.DataRow;
                                 var cId = row != null ? row["ID"] : complaint.ID;
                                 var cType = row != null ? row["CrimeType"] : complaint.CrimeType;
                                 var cLocation = row != null ? row["Location"] : complaint.Location;
                                 var cStatus = row != null ? row["Status"]?.ToString() : complaint.Status?.ToString();
 
-                                // Lowercase parsing to correctly sync CSS styling pill
                                 string statusClass = "pending";
                                 if (!string.IsNullOrEmpty(cStatus))
                                 {

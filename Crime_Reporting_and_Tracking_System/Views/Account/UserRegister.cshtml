@@ -299,19 +299,37 @@
                     </div>
                 </div>
 
+                <!-- 🔒 VALIDATION ADDED TO CNIC -->
                 <div class="form-group">
                     <label>CNIC (13 Digits)</label>
                     <div class="input-box">
                         <i class="fa-solid fa-id-card"></i>
-                        <input type="text" name="CNIC" placeholder="37405XXXXXXXX" required />
+                        <input type="text"
+                               name="CNIC"
+                               id="cnicInput"
+                               placeholder="37405XXXXXXXX"
+                               minlength="13"
+                               maxlength="13"
+                               pattern="[0-9]{13}"
+                               title="Please enter exactly 13 digits without spaces or dashes."
+                               required />
                     </div>
                 </div>
 
+                <!-- 🔒 VALIDATION ADDED TO PHONE NUMBER -->
                 <div class="form-group">
                     <label>Mobile Number</label>
                     <div class="input-box">
                         <i class="fa-solid fa-phone"></i>
-                        <input type="text" name="PhoneNumber" placeholder="03XXXXXXXXX" required />
+                        <input type="text"
+                               name="PhoneNumber"
+                               id="phoneInput"
+                               placeholder="03XXXXXXXXX"
+                               minlength="11"
+                               maxlength="11"
+                               pattern="03[0-9]{9}"
+                               title="Please enter a valid 11-digit mobile number starting with 03."
+                               required />
                     </div>
                 </div>
 
@@ -338,12 +356,23 @@
     </div>
 
     <script>
+            // Avatar Preview logic
             document.getElementById('imageUploader').addEventListener('change', function (event) {
                 const [file] = this.files;
                 if (file) {
                     document.getElementById('avatarPreview').src = URL.createObjectURL(file);
                 }
             });
+
+            // Restrict input to numbers only for CNIC and Phone Fields
+            const restrictToNumbers = (element) => {
+                element.addEventListener('input', function (e) {
+                    this.value = this.value.replace(/[^0-9]/g, '');
+                });
+            };
+
+            restrictToNumbers(document.getElementById('cnicInput'));
+            restrictToNumbers(document.getElementById('phoneInput'));
     </script>
 
 </body>
