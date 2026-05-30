@@ -108,6 +108,7 @@
         .container {
             display: flex;
             margin-top: 80px;
+            min-height: calc(100vh - 140px);
         }
 
         /* SIDEBAR */
@@ -183,6 +184,7 @@
 
         /* CARDS */
         .cards {
+            text-align: center;
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 20px;
@@ -197,9 +199,11 @@
             backdrop-filter: blur(18px);
             transition: .4s;
             overflow: hidden;
+            text-align: center;
         }
 
             .card:hover {
+                text-align: center;
                 transform: translateY(-10px) scale(1.03);
                 box-shadow: 0 0 25px rgba(37,99,235,0.4), 0 0 50px rgba(147,51,234,0.2);
             }
@@ -211,6 +215,7 @@
                 background: radial-gradient(circle, rgba(99,102,241,0.2), transparent 60%);
                 opacity: 0;
                 transition: .4s;
+                text-align: center;
             }
 
             .card:hover::after {
@@ -269,7 +274,8 @@
 
         /* FOOTER */
         .footer {
-            position: fixed;
+            
+            position: relative;
             bottom: 0;
             width: 100%;
             text-align: center;
@@ -410,7 +416,6 @@
         © 2026 CrimeVision | Smart Crime Reporting & Tracking System
     </div>
 
-    ```cshtml
     <script>
 
         // ================= BAR CHART =================
@@ -420,130 +425,73 @@
             {
                 type: 'bar',
                 data: {
-                    labels: @Html.Raw(JsonSerializer.Serialize((List<string>)ViewBag.CrimeTypes)),
+                    labels: @Html.Raw(JsonSerializer.Serialize((List<string>)ViewBag.CrimeTypes ?? new List<string>())),
                     datasets: [{
                         label: 'Crime Reports',
-                        data: @Html.Raw(JsonSerializer.Serialize((List<int>)ViewBag.CrimeTotals)),
-
-                        // NEW COLORS
+                        data: @Html.Raw(JsonSerializer.Serialize((List<int>)ViewBag.CrimeTotals ?? new List<int>())),
 
                         backgroundColor: [
-                            '#ff6b6b',
-                            '#feca57',
-                            '#1dd1a1',
-                            '#54a0ff',
-                            '#5f27cd',
-                            '#ee5253',
-                            '#10ac84',
-                            '#341f97'
+                            '#ff6b6b', '#feca57', '#1dd1a1', '#54a0ff',
+                            '#5f27cd', '#ee5253', '#10ac84', '#341f97'
                         ],
-
                         borderRadius: 12,
                         borderSkipped: false
                     }]
                 },
-
                 options: {
-
                     responsive: true,
-
                     plugins: {
-
                         legend: {
-                            labels: {
-                                color: 'white',
-                                font: {
-                                    size: 14
-                                }
-                            }
+                            labels: { color: 'white', font: { size: 14 } }
                         }
                     },
-
                     scales: {
-
                         y: {
-                            ticks: {
-                                color: 'white',
-                                font: {
-                                    size: 13
-                                }
-                            },
-
-                            grid: {
-                                color: 'rgba(255,255,255,0.1)'
-                            }
+                            ticks: { color: 'white', font: { size: 13 } },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
                         },
-
                         x: {
-                            ticks: {
-                                color: 'white',
-                                font: {
-                                    size: 13
-                                }
-                            },
-
-                            grid: {
-                                color: 'rgba(255,255,255,0.05)'
-                            }
+                            ticks: { color: 'white', font: { size: 13 } },
+                            grid: { color: 'rgba(255,255,255,0.05)' }
                         }
                     }
                 }
             }
         );
 
-
-
-        // ================= PIE CHART =================
+        // ================= PIE/DOUGHNUT CHART =================
 
         const statusChart = new Chart(
             document.getElementById('statusChart'),
             {
                 type: 'doughnut',
-
                 data: {
-
                     labels: ['Pending', 'Resolved', 'In Progress'],
-
                     datasets: [{
+                        // Yeh bilkul dynamic hai aur aapke Controller se data uthayega
                         data: [
-                            @ViewBag.PendingCases,
-                            @ViewBag.ResolvedCases,
-                            @ViewBag.InProgressCases
+                            @(ViewBag.PendingCases ?? 0),
+                            @(ViewBag.ResolvedCases ?? 0),
+                            @(ViewBag.InProgressCases ?? 0)
                         ],
-
                         backgroundColor: [
-                            '#f39c12',
-                            '#2ecc71',
-                            '#3498db'
+                            '#f39c12', // Pending (Yellow)
+                            '#2ecc71', // Resolved (Green)
+                            '#3498db'  // In Progress (Blue)
                         ],
-
                         borderWidth: 2,
                         borderColor: '#111827'
                     }]
                 },
-
                 options: {
-
                     responsive: true,
-
                     plugins: {
-
-                        // WHITE TEXT
-
                         legend: {
-
                             position: 'bottom',
-
                             labels: {
-
                                 color: 'white',
-
                                 padding: 20,
-
-                                font: {
-                                    size: 14,
-                                    weight: 'bold'
-                                }
+                                font: { size: 14, weight: 'bold' }
                             }
                         }
                     }

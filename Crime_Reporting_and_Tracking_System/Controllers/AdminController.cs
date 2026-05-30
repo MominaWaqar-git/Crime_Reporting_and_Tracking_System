@@ -34,125 +34,69 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
         // ==========================================
         // 1. DASHBOARD OVERVIEW
         // =========================================
+    
         public ActionResult Dashboard()
         {
-            // CARDS VARIABLES
+            // 1. Secure it!
+            if (!IsAdminAuthenticated()) return RedirectToAction("AdminLogin", "Account");
 
-            int totalReports = 0;
-            int pendingCases = 0;
-            int resolvedCases = 0;
-            int inProgressCases = 0;
-            int totalUsers = 0;
-
-            // CHART LISTS
-
+            int totalReports = 0, pendingCases = 0, resolvedCases = 0, inProgressCases = 0, totalUsers = 0;
             List<string> crimeTypes = new List<string>();
             List<int> crimeTotals = new List<int>();
 
-
-            // CONNECTION
-
-            SqlConnection con = new SqlConnection(_connectionString);
-
-            con.Open();
-
-
-            // ================= TOTAL REPORTS =================
-
-            SqlCommand totalCmd = new SqlCommand(
-                "SELECT COUNT(*) FROM Complaints",
-                con
-            );
-
-            totalReports = Convert.ToInt32(totalCmd.ExecuteScalar());
-
-
-            // ================= PENDING CASES =================
-
-            SqlCommand pendingCmd = new SqlCommand(
-                "SELECT COUNT(*) FROM Complaints WHERE Status='Pending'",
-                con
-            );
-
-            pendingCases = Convert.ToInt32(pendingCmd.ExecuteScalar());
-
-
-            // ================= RESOLVED / COMPLETED CASES =================
-            // Dono statuses count honge:
-            // Resolved OR Complete
-
-            SqlCommand resolvedCmd = new SqlCommand(
-                @"SELECT COUNT(*) 
-          FROM Complaints 
-          WHERE Status='Resolved'
-          OR Status='Complete'",
-                con
-            );
-
-            resolvedCases = Convert.ToInt32(resolvedCmd.ExecuteScalar());
-
-
-            // ================= IN PROGRESS CASES =================
-
-            SqlCommand progressCmd = new SqlCommand(
-                "SELECT COUNT(*) FROM Complaints WHERE Status='In Progress'",
-                con
-            );
-
-            inProgressCases = Convert.ToInt32(progressCmd.ExecuteScalar());
-
-
-            // ================= TOTAL USERS =================
-
-            SqlCommand usersCmd = new SqlCommand(
-                "SELECT COUNT(*) FROM Users",
-                con
-            );
-
-            totalUsers = Convert.ToInt32(usersCmd.ExecuteScalar());
-
-
-            // ================= CHART DATA =================
-
-            string chartQuery = @"
-        SELECT CrimeType, COUNT(*) AS Total
-        FROM Complaints
-        GROUP BY CrimeType";
-
-            SqlCommand chartCmd = new SqlCommand(chartQuery, con);
-
-            SqlDataReader dr = chartCmd.ExecuteReader();
-
-            while (dr.Read())
+            // 2. Wrap in a 'using' statement for safety
+            using (SqlConnection con = new SqlConnection(_connectionString))
             {
-                crimeTypes.Add(dr["CrimeType"].ToString());
+                con.Open();
 
-                crimeTotals.Add(
-                    Convert.ToInt32(dr["Total"])
-                );
+                // Total Reports
+                using (SqlCommand totalCmd = new SqlCommand("SELECT COUNT(*) FROM Complaints", con))
+                    totalReports = Convert.ToInt32(totalCmd.ExecuteScalar());
+
+                // Pending Cases
+                using (SqlCommand pendingCmd = new SqlCommand("SELECT COUNT(*) FROM Complaints WHERE Status='Pending Approval'", con))
+                    pendingCases = Convert.ToInt32(pendingCmd.ExecuteScalar());
+
+                // Resolved/Completed Cases
+                using (SqlCommand resolvedCmd = new SqlCommand("SELECT COUNT(*) FROM Complaints WHERE Status='Resolved' OR Status='Completed'", con))
+                    resolvedCases = Convert.ToInt32(resolvedCmd.ExecuteScalar());
+
+                // In Progress Cases
+                using (SqlCommand progressCmd = new SqlCommand("SELECT COUNT(*) FROM Complaints WHERE Status='In Progress'", con))
+                    inProgressCases = Convert.ToInt32(progressCmd.ExecuteScalar());
+
+                // Total Users
+                using (SqlCommand usersCmd = new SqlCommand("SELECT COUNT(*) FROM [Users]", con))
+                    totalUsers = Convert.ToInt32(usersCmd.ExecuteScalar());
+
+                // Chart Data (Grouping by Crime Type Category dynamically)
+                string chartQuery = "SELECT ISNULL(CrimeType, 'General') AS CrimeType, COUNT(*) AS Total FROM Complaints GROUP BY CrimeType";
+                using (SqlCommand chartCmd = new SqlCommand(chartQuery, con))
+                using (SqlDataReader dr = chartCmd.ExecuteReader())
+                {
+                    while (dr.Read())
+                    {
+                        crimeTypes.Add(dr["CrimeType"].ToString());
+                        crimeTotals.Add(Convert.ToInt32(dr["Total"]));
+                    }
+                }
             }
 
-            dr.Close();
+            // If no database data exists yet, provide explicit chart defaults to avoid Javascript crashes
+            if (!crimeTypes.Any())
+            {
+                crimeTypes.Add("No Data Available");
+                crimeTotals.Add(0);
+            }
 
-            con.Close();
-
-
-            // ================= VIEWBAG =================
-
+            // Pass data to ViewBag safely
             ViewBag.TotalReports = totalReports;
-
             ViewBag.PendingCases = pendingCases;
-
             ViewBag.ResolvedCases = resolvedCases;
-
             ViewBag.InProgressCases = inProgressCases;
-
             ViewBag.TotalUsers = totalUsers;
-
             ViewBag.CrimeTypes = crimeTypes;
-
             ViewBag.CrimeTotals = crimeTotals;
-
 
             return View();
         }
