@@ -1,0 +1,6 @@
+﻿CREATE TABLE GroupChats (
+    ChatId INT IDENTITY(1,1) PRIMARY KEY,
+    ComplaintId INT NOT NULL FOREIGN KEY REFERENCES Complaints(ID),
+    CreatedDate DATETIME DEFAULT GETDATE(),
+    IsDeleted BIT DEFAULT 0
+);

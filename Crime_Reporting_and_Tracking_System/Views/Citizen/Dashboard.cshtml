@@ -370,6 +370,10 @@
                 <a class="active" href="@Url.Action("CitizenDashboard", "Account")"><i class="fa-solid fa-gauge"></i> Dashboard</a>
                 <a href="@Url.Action("MyComplaints", "Account")"><i class="fa-solid fa-file-invoice"></i> My Complaints</a>
                 <a href="@Url.Action("PublicAlerts", "Account")"><i class="fa-solid fa-bullhorn"></i> Public Alerts</a>
+                <a href="@Url.Action("CitizenPortal", "Chat", new { phone = User.Identity.Name })" class="btn-chat-link">
+                    <i class="fa-solid fa-comments"></i>
+                    <span>Live Chat with HQ Desk</span>
+                </a>
                 <a href="#"><i class="fa-solid fa-user-gear"></i> Profile Settings</a>
                 <a href="@Url.Action("UserLogin", "Account")" style="color: #f87171;">
                     <i class="fa-solid fa-right-from-bracket"></i> Logout

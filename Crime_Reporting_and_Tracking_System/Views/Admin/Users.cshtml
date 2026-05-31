@@ -3,6 +3,7 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     ViewData["Title"] = "Citizens Registry";
 }
+
 <style>
     .dashboard-container {
         max-width: 1200px;
@@ -26,8 +27,31 @@
         border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         padding-bottom: 20px;
         margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 15px;
     }
 
+    .header-left h3 {
+        color: white;
+        margin: 0;
+        font-weight: 600;
+        font-size: 22px;
+    }
+
+    .header-left p {
+        color: #9ca3af;
+        margin: 5px 0 0 0;
+        font-size: 13px;
+    }
+
+    /* RIGHT SIDE CONTROLS */
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    /* SAME STYLE AS OFFICERS BUTTON */
     .btn-add-cyber {
         background: linear-gradient(90deg, #06b6d4 0%, #2563eb 100%);
         color: white;
@@ -49,6 +73,42 @@
         .btn-add-cyber:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(6, 182, 212, 0.5);
+        }
+
+    /* SEARCH BOX */
+    .search-box {
+        position: relative;
+        width: 260px;
+    }
+
+        .search-box input {
+            width: 100%;
+            padding: 11px 15px 11px 42px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.04);
+            color: white;
+            outline: none;
+            transition: 0.3s;
+            font-size: 14px;
+        }
+
+            .search-box input:focus {
+                border-color: #06b6d4;
+                box-shadow: 0 0 15px rgba(6,182,212,0.3);
+            }
+
+            .search-box input::placeholder {
+                color: #94a3b8;
+            }
+
+        .search-box i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #06b6d4;
+            font-size: 14px;
         }
 
     .cyber-table {
@@ -83,7 +143,7 @@
         border-radius: 50%;
         object-fit: cover;
         border: 2px solid #06b6d4;
-        box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
+        box-shadow: 0 0 10px rgba(6,182,212,0.2);
     }
 
     .badge-status {
@@ -94,46 +154,88 @@
     }
 
     .badge-active {
-        background: rgba(16, 185, 129, 0.15);
+        background: rgba(16,185,129,0.15);
         color: #10b981;
         border: 1px solid #10b981;
     }
 
     .badge-suspended {
-        background: rgba(239, 68, 68, 0.15);
+        background: rgba(239,68,68,0.15);
         color: #ef4444;
         border: 1px solid #ef4444;
     }
 
+    /* ACTION ICONS */
     .action-icons a {
-        color: #9ca3af;
         margin-right: 12px;
-        transition: 0.2s;
         font-size: 16px;
+        transition: 0.3s;
+        text-decoration: none;
     }
 
         .action-icons a:hover {
-            color: #06b6d4;
+            transform: scale(1.15);
         }
+
+    .edit-icon {
+        color: #a855f7;
+    }
+
+    .view-icon {
+        color: #60a5fa;
+    }
+
+    .delete-icon {
+        color: #f87171;
+    }
 </style>
 
 <div class="dashboard-container">
     <div class="registry-wrapper">
 
         <div class="registry-header">
-            <div>
-                <h3 style="color: white; margin: 0; font-weight: 600; font-size: 22px;">
-                    <i class="fa-solid fa-users-viewfinder" style="color: #06b6d4; margin-right: 8px;"></i> Citizens System Registry
+
+            <!-- LEFT -->
+            <div class="header-left">
+                <h3>
+                    <i class="fa-solid fa-users-viewfinder"
+                       style="color:#06b6d4; margin-right:8px;"></i>
+                    Citizens System Registry
                 </h3>
-                <p style="color: #9ca3af; margin: 5px 0 0 0; font-size: 13px;">Central database tracking authorized civilian identity profiles.</p>
+
+                <p>
+                    Central database tracking authorized civilian identity profiles.
+                </p>
             </div>
-            <a href="@Url.Action("CreateUser", "Admin")" class="btn-add-cyber">
-                <i class="fa-solid fa-user-plus"></i> Add New Citizen
-            </a>
+
+            <!-- RIGHT -->
+            <div class="header-actions">
+
+                <!-- SEARCH -->
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+
+                    <input type="text"
+                           id="liveSearch"
+                           placeholder="Search any citizen data..." />
+                </div>
+
+                <!-- BUTTON -->
+                <a href="@Url.Action("CreateUser", "Admin")"
+                   class="btn-add-cyber">
+
+                    <i class="fa-solid fa-user-plus"></i>
+                    Add New Citizen
+                </a>
+
+            </div>
+
         </div>
 
-        <div style="overflow-x: auto;">
+        <div style="overflow-x:auto;">
+
             <table class="cyber-table">
+
                 <thead>
                     <tr>
                         <th>Avatar</th>
@@ -145,11 +247,19 @@
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody>
+
+                <tbody id="citizenTable">
+
                     @if (Model == null || !Model.Any())
                     {
                         <tr>
-                            <td colspan="7" style="text-align:center; color:#6b7280; padding:40px;">No records found in CrimeVision database registry.</td>
+                            <td colspan="7"
+                                style="text-align:center;
+                                           color:#6b7280;
+                                           padding:40px;">
+
+                                No records found in CrimeVision database registry.
+                            </td>
                         </tr>
                     }
                     else
@@ -157,43 +267,119 @@
                         @foreach (var item in Model)
                         {
                             <tr>
+
+                                <!-- IMAGE -->
                                 <td>
-                                    <!-- Dynamic Image Loading from uploads with fallback -->
-                                    <img src="~/@(string.IsNullOrEmpty(item.ProfileImage) ? "uploads/default-avatar.png" : item.ProfileImage)"
-                                         class="citizen-thumb"
-                                         onerror="this.src='/uploads/default-avatar.png';" />
-                                </td>
-                                <td style="font-weight:600; color:#ffffff;">
+                                    <img src="~/@(string.IsNullOrEmpty(item.ProfileImage)
+                                                                             ? "uploads/default-avatar.png"
+                                                                             : item.ProfileImage)"
+                                                                                                 class="citizen-thumb"
+                                                                                                 onerror="this.src='/uploads/default-avatar.png';" />
+                                                                                        </td>
+
+                                <!-- NAME -->
+                                <td style="font-weight:600; color:white;">
                                     @item.FullName
                                 </td>
-                                <td style="color:#e5e7eb;">
+
+                                <!-- EMAIL -->
+                                <td>
                                     @item.Email
                                 </td>
-                                <td style="color:#e5e7eb;">
-                                    @(string.IsNullOrEmpty(item.PhoneNumber) ? "N/A" : item.PhoneNumber)
-                                </td>
-                                <td style="letter-spacing:0.5px;">@item.CNIC</td>
+
+                                <!-- PHONE -->
                                 <td>
-                                    @if (item.Status == "Active")
+                                    @(string.IsNullOrEmpty(item.PhoneNumber)
+                                                                ? "N/A"
+                                                                : item.PhoneNumber)
+                        </td>
+
+                                <!-- CNIC -->
+                                <td>
+                                    @item.CNIC
+                                </td>
+
+                                <!-- STATUS -->
+                                <td>
+
+                            @if (item.Status == "Active")
                                     {
-                                        <span class="badge-status badge-active">Active</span>
+                                        <span class="badge-status badge-active">
+                                            Active
+                                        </span>
                                     }
                                     else
                                     {
-                                        <span class="badge-status badge-suspended">Suspended</span>
+                                        <span class="badge-status badge-suspended">
+                                            Suspended
+                                        </span>
                                     }
+
                                 </td>
+
+                                <!-- ACTIONS -->
                                 <td class="action-icons">
-                                    <a href="@Url.Action("EditUser", "Admin", new { id = item.Id })" title="Modify Context"><i class="fa-solid fa-pen-to-square" style="color:#a855f7;"></i></a>
-                                    <a href="@Url.Action("UserDetails", "Admin", new { id = item.Id })" title="View Profile"><i class="fa-solid fa-eye" style="color:#60a5fa;"></i></a>
-                                    <a href="@Url.Action("DeleteUser", "Admin", new { id = item.Id })" onclick="return confirm('Are you sure to revoke this citizen access?');" title="Deauthorize" style="margin-right:0;"><i class="fa-solid fa-trash" style="color:#f87171;"></i></a>
+
+                                    <a href="@Url.Action("EditUser", "Admin",
+                                                                              new { id = item.Id })"
+                               title="Edit">
+
+                                        <i class="fa-solid fa-pen-to-square edit-icon"></i>
+                                    </a>
+
+                                    <a href="@Url.Action("UserDetails", "Admin",
+                                                                      new { id = item.Id })"
+                               title="View">
+
+                                        <i class="fa-solid fa-eye view-icon"></i>
+                                    </a>
+
+                                    <a href="@Url.Action("DeleteUser", "Admin",
+                                                                      new { id = item.Id })"
+                               onclick="return confirm('Are you sure to delete this citizen?');"
+                               title="Delete">
+
+                                        <i class="fa-solid fa-trash delete-icon"></i>
+                                    </a>
+
                                 </td>
+
                             </tr>
-                        }
+                                        }
                     }
+
                 </tbody>
+
             </table>
+
         </div>
 
     </div>
 </div>
+
+<!-- LIVE SEARCH SCRIPT -->
+<script>
+
+    document.getElementById("liveSearch")
+        .addEventListener("keyup", function () {
+
+            let value = this.value.toLowerCase();
+
+            let rows = document.querySelectorAll("#citizenTable tr");
+
+            rows.forEach(function (row) {
+
+                let rowText = row.innerText.toLowerCase();
+
+                if (rowText.includes(value)) {
+                    row.style.display = "";
+                }
+                else {
+                    row.style.display = "none";
+                }
+
+            });
+
+        });
+
+</script>

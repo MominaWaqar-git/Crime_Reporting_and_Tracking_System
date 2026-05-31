@@ -4,6 +4,10 @@
     Layout = "_AdminLayout";
 }
 
+<!-- FontAwesome & SweetAlert2 CDN Links -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <style>
     /* Main Panel Box */
     .report-card {
@@ -26,24 +30,29 @@
         width: 320px;
     }
 
-        .search-box input {
-            width: 100%;
-            padding: 12px 15px 12px 40px;
-            background: #131026;
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 12px;
-            color: white;
-            outline: none;
-            font-size: 14px;
-        }
+    .search-box input {
+        width: 100%;
+        padding: 12px 15px 12px 40px;
+        background: #131026;
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 12px;
+        color: white;
+        outline: none;
+        font-size: 14px;
+        transition: border-color 0.3s ease;
+    }
 
-        .search-box i {
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #888;
-        }
+    .search-box input:focus {
+        border-color: #6c5ce7;
+    }
+
+    .search-box i {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #888;
+    }
 
     /* Table Styling */
     .report-table {
@@ -52,27 +61,27 @@
         text-align: left;
     }
 
-        .report-table th {
-            padding: 15px;
-            color: #6c5ce7;
-            font-weight: 600;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.05);
-        }
+    .report-table th {
+        padding: 15px;
+        color: #6c5ce7;
+        font-weight: 600;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+    }
 
-        .report-table td {
-            padding: 15px;
-            font-size: 14px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            color: #e0e0e0;
-            vertical-align: middle;
-        }
+    .report-table td {
+        padding: 15px;
+        font-size: 14px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        color: #e0e0e0;
+        vertical-align: middle;
+    }
 
-        .report-table tbody tr:hover {
-            background: rgba(255, 255, 255, 0.02);
-        }
+    .report-table tbody tr:hover:not(.no-hover) {
+        background: rgba(255, 255, 255, 0.02);
+    }
 
     /* Citizen Profile Avatar Styling */
     .citizen-profile-box {
@@ -120,9 +129,9 @@
         transition: 0.3s ease;
     }
 
-        .evidence-img:hover {
-            transform: scale(1.05);
-        }
+    .evidence-img:hover {
+        transform: scale(1.05);
+    }
 
     /* Glowing Badges */
     .badge {
@@ -156,7 +165,7 @@
     /* Action Buttons */
     .btn-action {
         border: none;
-        padding: 7px 14px;
+        padding: 8px 16px;
         border-radius: 20px;
         font-size: 12px;
         font-weight: 600;
@@ -164,8 +173,11 @@
         transition: all 0.3s ease;
         display: inline-flex;
         align-items: center;
-        gap: 5px;
+        justify-content: center;
+        gap: 6px;
         text-decoration: none;
+        width: 100%;
+        max-width: 160px;
     }
 
     .btn-approve {
@@ -179,9 +191,15 @@
         box-shadow: 0 4px 10px rgba(46, 213, 115, 0.2);
     }
 
+    .btn-chat {
+        background: #25D366; 
+        color: white;
+    }
+
     .btn-action:hover:not(:disabled) {
         transform: translateY(-2px);
-        opacity: 0.9;
+        opacity: 0.95;
+        box-shadow: 0 4px 15px rgba(255,255,255,0.1);
     }
 
     .btn-action:disabled {
@@ -204,35 +222,40 @@
         width: 140px;
     }
 
-        .officer-select:disabled {
-            background: rgba(255,255,255,0.02);
-            color: #555;
-            border-color: rgba(255,255,255,0.02);
-        }
+    .officer-select:disabled {
+        background: rgba(255,255,255,0.02);
+        color: #555;
+        border-color: rgba(255,255,255,0.02);
+    }
 
     .btn-assign {
         background: #6c5ce7;
         color: white;
         border: none;
-        padding: 6px 10px;
+        padding: 6px 12px;
         border-radius: 8px;
         font-size: 12px;
         cursor: pointer;
-        margin-left: 3px;
+        margin-left: 5px;
+        transition: background 0.2s;
     }
 
-        .btn-assign:disabled {
-            background: #222;
-            color: #555;
-            cursor: not-allowed;
-        }
+    .btn-assign:hover:not(:disabled) {
+        background: #5b4cc4;
+    }
+
+    .btn-assign:disabled {
+        background: #222;
+        color: #555;
+        cursor: not-allowed;
+    }
 
     .officer-tag {
         display: inline-block;
         background: rgba(108, 92, 231, 0.15);
         color: #a29bfe;
         border: 1px solid rgba(108, 92, 231, 0.3);
-        padding: 2px 8px;
+        padding: 4px 10px;
         border-radius: 12px;
         font-size: 11px;
         margin: 2px;
@@ -242,27 +265,19 @@
 <div class="main">
 
     <!-- Topbar -->
-    <div class="topbar" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
-
-        <h2>Crime Reports Management</h2>
+    <div class="topbar" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; flex-wrap: wrap; gap: 15px;">
+        <h2><i class="fa-solid fa-shield-halved" style="color: #6c5ce7; margin-right: 10px;"></i>Crime Reports Management</h2>
 
         <!-- Live Search -->
         <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
-
-            <input type="text"
-                   id="liveSearch"
-                   placeholder="Search complaints..." />
+            <input type="text" id="liveSearch" placeholder="Search complaints by keyword..." />
         </div>
-
     </div>
 
     <div class="report-card">
-
         <div class="table-responsive">
-
             <table class="report-table">
-
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -277,329 +292,278 @@
                 </thead>
 
                 <tbody id="complaintsTable">
-
-                    @if (ViewBag.AllComplaints != null)
+                    @if (ViewBag.AllComplaints != null && ((IEnumerable<dynamic>)ViewBag.AllComplaints).Any())
                     {
                         foreach (var item in ViewBag.AllComplaints)
                         {
-                            bool isCompleted = item.Status.Contains("Completed");
+                            bool isCompleted = item.Status != null && Convert.ToString(item.Status).Contains("Completed");
+                            
+                            // Safe Casting & Path Cleaning for dynamic objects
+                            string citizenImgPath = Convert.ToString(item.CitizenImage);
+                            if (!string.IsNullOrEmpty(citizenImgPath)) {
+                                citizenImgPath = citizenImgPath.Replace("~/", "/");
+                            }
+
+                            string evidencePath = Convert.ToString(item.EvidenceFile);
+                            if (!string.IsNullOrEmpty(evidencePath)) {
+                                evidencePath = evidencePath.Replace("~/", "/");
+                            }
 
                             <tr>
-
                                 <!-- ID -->
-                                <td>#@item.ID</td>
+                                <td><strong style="color: #a29bfe;">#@item.ID</strong></td>
 
-                                <!-- Citizen -->
+                                <!-- Citizen Profile Image Fix -->
                                 <td>
                                     <div class="citizen-profile-box">
-
                                         <div class="avatar-container">
-
-                                            @if (!string.IsNullOrEmpty(item.CitizenImage) &&
-                                                                                (item.CitizenImage.StartsWith("/") ||
-                                                                                item.CitizenImage.StartsWith("~") ||
-                                                                                item.CitizenImage.StartsWith("http")))
+                                            @if (!string.IsNullOrEmpty(citizenImgPath))
                                             {
-                                                <img src="@Url.Content(item.CitizenImage)"
-                                                     class="avatar-img"
-                                                     alt="Citizen"
-                                                     onerror="this.onerror=null; this.src='/images/default-avatar.png';" />
+                                                <img src="@citizenImgPath" class="avatar-img" alt="Citizen" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+                                                <i class="fa-solid fa-user default-avatar-icon" style="display:none;"></i>
                                             }
                                             else
                                             {
                                                 <i class="fa-solid fa-user default-avatar-icon"></i>
                                             }
-
                                         </div>
 
                                         <div class="citizen-info">
                                             <div style="font-weight:600; color:#fff;">
                                                 @(item.FullName ?? "Anonymous")
                                             </div>
-
-                                            <div style="font-size:12px; color:#aaa;">
-                                                <i class="fa-solid fa-phone"
-                                                   style="font-size:10px; color:#6c5ce7;"></i>
-
+                                            <div style="font-size:12px; color:#aaa; display:flex; align-items:center; gap:5px;">
+                                                <i class="fa-solid fa-phone" style="font-size:10px; color:#6c5ce7;"></i>
                                                 @(item.PhoneNumber ?? "N/A")
                                             </div>
                                         </div>
-
                                     </div>
                                 </td>
 
                                 <!-- Crime Type -->
                                 <td>
-                                    <strong style="color:#ff7675;">
+                                    <span style="color:#ff7675; font-weight: 600;">
                                         @item.CrimeType
-                                    </strong>
+                                    </span>
                                 </td>
 
-                                <!-- Location -->
+                                <!-- Location & Date -->
                                 <td>
-                                    <div>
-                                        <i class="fa-solid fa-location-dot"
-                                           style="color:#a29bfe; font-size:11px;"></i>
-
+                                    <div style="display:flex; align-items:center; gap:5px;">
+                                        <i class="fa-solid fa-location-dot" style="color:#a29bfe; font-size:11px;"></i>
                                         @item.Location
                                     </div>
-
-                                    <div style="font-size:12px; color:#888; margin-top:4px;">
-                                        <i class="fa-solid fa-calendar-days"
-                                           style="font-size:11px;"></i>
-
+                                    <div style="font-size:12px; color:#888; margin-top:4px; display:flex; align-items:center; gap:5px;">
+                                        <i class="fa-solid fa-calendar-days" style="font-size:11px;"></i>
                                         @item.IncidentDate
                                     </div>
                                 </td>
 
-                                <!-- Evidence -->
+                                <!-- Evidence Media View Fix -->
                                 <td>
-
-                                    @if (!string.IsNullOrEmpty(item.EvidenceFile))
+                                    @if (!string.IsNullOrEmpty(evidencePath))
                                     {
-                                        if (item.EvidenceFile.EndsWith(".jpg") ||
-                                        item.EvidenceFile.EndsWith(".png") ||
-                                        item.EvidenceFile.EndsWith(".jpeg") ||
-                                        item.EvidenceFile.EndsWith(".gif"))
+                                        string evLower = evidencePath.ToLower();
+                                        if (evLower.EndsWith(".jpg") || evLower.EndsWith(".png") || evLower.EndsWith(".jpeg") || evLower.EndsWith(".gif") || evLower.EndsWith(".webp"))
                                         {
-                                            <a href="@Url.Content(item.EvidenceFile)" target="_blank">
-
-                                                <img src="@Url.Content(item.EvidenceFile)"
+                                            <a href="@evidencePath" target="_blank">
+                                                <img src="@evidencePath"
                                                      class="evidence-img"
-                                                     alt="Evidence" />
-
+                                                     alt="Evidence"
+                                                     onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\'badge badge-pending\'><i class=\'fa-solid fa-circle-exclamation\'></i> Corrupt File</span>';" />
                                             </a>
                                         }
                                         else
                                         {
-                                            <a href="@Url.Content(item.EvidenceFile)"
-                                               target="_blank"
-                                               class="btn-action btn-approve">
-
-                                                <i class="fa-solid fa-file"></i>
-                                                View File
-
+                                            <a href="@evidencePath" target="_blank" class="btn-action btn-approve" style="padding: 5px 10px; font-size: 11px;">
+                                                <i class="fa-solid fa-file-invoice"></i> View File
                                             </a>
                                         }
                                     }
                                     else
                                     {
-                                        <span style="color:#888; font-size:12px;">
-                                            <i class="fa-solid fa-ban"></i>
-                                            No Evidence
+                                        <span style="color:#888; font-size:12px; display:flex; align-items:center; gap:5px;">
+                                            <i class="fa-solid fa-ban"></i> No Evidence
                                         </span>
                                     }
-
                                 </td>
 
                                 <!-- Status -->
                                 <td>
-
                                     @if (isCompleted)
                                     {
                                         <span class="badge badge-completed">
-                                            <i class="fa-solid fa-circle-check"></i>
-                                            Closed
+                                            <i class="fa-solid fa-circle-check"></i> Closed
                                         </span>
                                     }
-                                    else if (item.Status.Contains("Pending"))
+                                    else if (item.Status != null && Convert.ToString(item.Status).Contains("Pending"))
                                     {
                                         <span class="badge badge-pending">
-                                            <i class="fa-solid fa-clock"></i>
-                                            @item.Status
+                                            <i class="fa-solid fa-clock"></i> @item.Status
                                         </span>
                                     }
                                     else
                                     {
                                         <span class="badge badge-progress">
-                                            <i class="fa-solid fa-spinner fa-spin"></i>
-                                            @item.Status
+                                            <i class="fa-solid fa-spinner fa-spin"></i> @(item.Status ?? "In Progress")
                                         </span>
                                     }
-
                                 </td>
 
-                                <!-- Officers -->
+                                <!-- Assigned Officers -->
                                 <td>
-
-                                    <div style="margin-bottom:8px; max-width:180px;">
-
-                                        @if (!string.IsNullOrEmpty(item.AssignedOfficers))
+                                    <div style="margin-bottom:8px; max-width:200px; display:flex; flex-wrap:wrap; gap:2px;">
+                                        @if (item.AssignedOfficers != null && !string.IsNullOrEmpty(Convert.ToString(item.AssignedOfficers)))
                                         {
-                                            string[] officers = item.AssignedOfficers.Split(',');
-
+                                            string[] officers = Convert.ToString(item.AssignedOfficers).Split(',');
                                             foreach (var officer in officers)
                                             {
-                                                <span class="officer-tag">
-                                                    <i class="fa-solid fa-user-shield"
-                                                       style="font-size:9px;"></i>
-
-                                                    @officer.Trim()
-                                                </span>
+                                                if (!string.IsNullOrWhiteSpace(officer))
+                                                {
+                                                    <span class="officer-tag">
+                                                        <i class="fa-solid fa-user-shield" style="font-size:9px; margin-right:3px;"></i>@officer.Trim()
+                                                    </span>
+                                                }
                                             }
                                         }
                                         else
                                         {
-                                            <span style="font-size:12px; color:#ff7675;">
-                                                <i class="fa-solid fa-triangle-exclamation"></i>
-                                                Unassigned
+                                            <span style="font-size:12px; color:#ff7675; font-weight:500; padding-left:5px;">
+                                                <i class="fa-solid fa-triangle-exclamation"></i> Unassigned
                                             </span>
                                         }
-
                                     </div>
 
-                                    <!-- Assign Officer -->
-                                    <form action="/Admin/AssignOfficer"
-                                          method="post"
-                                          style="display:flex; align-items:center;">
-
+                                    <!-- Assign Officer Form -->
+                                    <form action="/Admin/AssignOfficer" method="post" class="confirm-form" style="display:flex; align-items:center;" data-title="Assign Officer?" data-text="Do you want to assign this officer to case #@item.ID?">
                                         @Html.AntiForgeryToken()
+                                        <input type="hidden" name="complaintId" value="@item.ID" />
 
-                                        <input type="hidden"
-                                               name="complaintId"
-                                               value="@item.ID" />
-
-                                        <select name="officerId"
-                                                class="officer-select"
-                                                required
-                                                @(isCompleted ? "disabled" : "")>
-
+                                        <select name="officerId" class="officer-select" required @(isCompleted ? "disabled" : "")>
                                             <option value="">+ Assign Officer</option>
-
                                             @if (ViewBag.OfficersList != null)
                                             {
                                                 foreach (var off in ViewBag.OfficersList)
                                                 {
-                                                    <option value="@off.Id">
-                                                        @off.FullName
-                                                    </option>
+                                                    <option value="@off.Id">@off.FullName</option>
                                                 }
                                             }
-
                                         </select>
 
-                                        <button type="submit"
-                                                class="btn-assign"
-                                                @(isCompleted ? "disabled" : "")>
-
+                                        <button type="submit" class="btn-assign" @(isCompleted ? "disabled" : "")>
                                             <i class="fa-solid fa-plus"></i>
-
                                         </button>
-
                                     </form>
-
                                 </td>
 
                                 <!-- Actions -->
                                 <td style="text-align:center;">
-
                                     <div style="display:flex; flex-direction:column; gap:8px; align-items:center;">
-
                                         @if (isCompleted)
                                         {
-                                            <span style="color:#2ed573; font-size:13px; font-weight:600;">
-                                                <i class="fas fa-check-double"></i>
-                                                Case Resolved
+                                            <span style="color:#2ed573; font-size:13px; font-weight:600; padding: 10px;">
+                                                <i class="fas fa-check-double"></i> Case Resolved
                                             </span>
                                         }
                                         else
                                         {
-                                            @if (item.Status.Contains("Pending"))
+                                            @if (item.Status != null && Convert.ToString(item.Status).Contains("Pending"))
                                             {
-                                                <form action="/Admin/ApproveComplaint"
-                                                      method="post"
-                                                      style="display:inline;">
-
+                                                <form action="/Admin/ApproveComplaint" method="post" class="confirm-form" style="display:inline; width:100%;" data-title="Approve Report?" data-text="Are you sure you want to approve Crime Report #@item.ID?">
                                                     @Html.AntiForgeryToken()
-
-                                                    <input type="hidden"
-                                                           name="id"
-                                                           value="@item.ID" />
-
-                                                    <button type="submit"
-                                                            class="btn-action btn-approve">
-
-                                                        <i class="fa-solid fa-thumbs-up"></i>
-                                                        Approve
-
+                                                    <input type="hidden" name="id" value="@item.ID" />
+                                                    <button type="submit" class="btn-action btn-approve">
+                                                        <i class="fa-solid fa-thumbs-up"></i> Approve
                                                     </button>
-
                                                 </form>
                                             }
 
-                                            <form action="/Admin/CompleteComplaint"
-                                                  method="post"
-                                                  style="display:inline;">
-
+                                            <form action="/Admin/CompleteComplaint" method="post" class="confirm-form" style="display:inline; width:100%;" data-title="Resolve Case?" data-text="Mark report #@item.ID as completed and move to archive?">
                                                 @Html.AntiForgeryToken()
-
-                                                <input type="hidden"
-                                                       name="id"
-                                                       value="@item.ID" />
-
-                                                <button type="submit"
-                                                        class="btn-action btn-complete">
-
-                                                    <i class="fa-solid fa-box-archive"></i>
-                                                    Complete
-
+                                                <input type="hidden" name="id" value="@item.ID" />
+                                                <button type="submit" class="btn-action btn-complete">
+                                                    <i class="fa-solid fa-box-archive"></i> Complete
                                                 </button>
-
                                             </form>
+
+                                            <a href="/Chat/ViewChat?complaintId=@item.ID" class="btn-action btn-chat">
+                                                <i class="fa-brands fa-whatsapp"></i> Case Room
+                                            </a>
                                         }
-
                                     </div>
-
                                 </td>
-
                             </tr>
                         }
                     }
                     else
                     {
                         <tr>
-                            <td colspan="8"
-                                style="text-align:center; color:#888; padding:30px 0;">
-
+                            <td colspan="8" style="text-align:center; color:#888; padding:40px 0;">
+                                <i class="fa-solid fa-folder-open" style="font-size: 24px; margin-bottom: 10px; display: block;"></i>
                                 No active complaints found in registry.
-
                             </td>
                         </tr>
                     }
-
                 </tbody>
-
             </table>
-
         </div>
-
     </div>
-
 </div>
 
-<!-- LIVE SEARCH SCRIPT -->
+<!-- CLIENT SIDE SCRIPTS -->
 <script>
+    // Live Search Functionality
+    document.getElementById("liveSearch").addEventListener("keyup", function () {
+        let value = this.value.toLowerCase().trim();
+        let rows = document.querySelectorAll("#complaintsTable tr:not(.no-search-results)");
+        let matchedCount = 0;
 
-    document.getElementById("liveSearch")
-        .addEventListener("keyup", function () {
+        let existingEmptyRow = document.querySelector(".no-search-results");
+        if (existingEmptyRow) existingEmptyRow.remove();
 
-            let value = this.value.toLowerCase();
-
-            let rows = document.querySelectorAll("#complaintsTable tr");
-
-            rows.forEach(function (row) {
-
-                let text = row.innerText.toLowerCase();
-
-                if (text.includes(value)) {
-                    row.style.display = "";
-                }
-                else {
-                    row.style.display = "none";
-                }
-
-            });
-
+        rows.forEach(function (row) {
+            let text = row.innerText.toLowerCase();
+            if (text.includes(value)) {
+                row.style.display = "";
+                matchedCount++;
+            } else {
+                row.style.display = "none";
+            }
         });
 
+        if (matchedCount === 0 && rows.length > 0) {
+            let tableBody = document.getElementById("complaintsTable");
+            let emptyRow = document.createElement("tr");
+            emptyRow.className = "no-search-results no-hover";
+            emptyRow.innerHTML = `<td colspan="8" style="text-align:center; color:#ff7675; padding:30px 0;"><i class="fa-solid fa-magnifying-glass-minus"></i> No matching complaints found for "${this.value}"</td>`;
+            tableBody.appendChild(emptyRow);
+        }
+    });
+
+    // SweetAlert2 Confirmation Popups
+    document.querySelectorAll('.confirm-form').forEach(function (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            let titleText = form.getAttribute('data-title') || 'Are you sure?';
+            let descriptionText = form.getAttribute('data-text') || 'Do you want to proceed with this action?';
+
+            Swal.fire({
+                title: titleText,
+                text: descriptionText,
+                icon: 'warning',
+                background: '#131026',
+                color: '#fff',
+                showCancelButton: true,
+                confirmButtonColor: '#6c5ce7',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, proceed!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
+    });
 </script>

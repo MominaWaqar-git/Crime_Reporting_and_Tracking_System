@@ -389,44 +389,21 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
             c.CitizenName,
             c.CitizenPhone,
             u.ProfileImage,
-
-            -- Evidence
             MAX(e.FilePath) AS EvidenceFile,
-
-            -- Officers
             STRING_AGG(o.Name + ' (' + o.Rank + ')', ', ') AS AssignedOfficers
-
         FROM Complaints c
-
-        LEFT JOIN Users u
-            ON c.CitizenPhone = u.PhoneNumber
-
-        LEFT JOIN ComplaintAssignments ca
-            ON c.ID = ca.ComplaintId
-
-        LEFT JOIN Officers o
-            ON ca.OfficerId = o.Id
-
-        LEFT JOIN Evidence e
-            ON c.ID = e.ComplaintId
-
+        LEFT JOIN Users u ON c.CitizenPhone = u.PhoneNumber
+        LEFT JOIN ComplaintAssignments ca ON c.ID = ca.ComplaintId
+        LEFT JOIN Officers o ON ca.OfficerId = o.Id
+        LEFT JOIN Evidence e ON c.ID = e.ComplaintId
         GROUP BY 
-            c.ID,
-            c.CrimeType,
-            c.IncidentDate,
-            c.Location,
-            c.Status,
-            c.Description,
-            c.CitizenName,
-            c.CitizenPhone,
-            u.ProfileImage
-
+            c.ID, c.CrimeType, c.IncidentDate, c.Location, c.Status, 
+            c.Description, c.CitizenName, c.CitizenPhone, u.ProfileImage
         ORDER BY c.ID DESC";
 
                 using (SqlCommand cmd = new SqlCommand(query, con))
                 {
                     con.Open();
-
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
@@ -435,98 +412,55 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
 
                             complaint.Add("ID", reader["ID"]);
 
-                            complaint.Add("CrimeType",
-                                reader["CrimeType"] != DBNull.Value
-                                ? reader["CrimeType"].ToString()
-                                : "N/A");
+                            complaint.Add("CrimeType", reader["CrimeType"] != DBNull.Value ? reader["CrimeType"].ToString() : "N/A");
 
-                            string formattedDate =
-                                reader["IncidentDate"] != DBNull.Value
+                            string formattedDate = reader["IncidentDate"] != DBNull.Value
                                 ? Convert.ToDateTime(reader["IncidentDate"]).ToString("dd/MM/yyyy")
                                 : "N/A";
-
                             complaint.Add("IncidentDate", formattedDate);
 
-                            complaint.Add("Location",
-                                reader["Location"] != DBNull.Value
-                                ? reader["Location"].ToString()
-                                : "N/A");
+                            complaint.Add("Location", reader["Location"] != DBNull.Value ? reader["Location"].ToString() : "N/A");
 
-                            complaint.Add("Status",
-                                reader["Status"] != DBNull.Value
-                                ? reader["Status"].ToString()
-                                : "Pending");
+                            complaint.Add("Status", reader["Status"] != DBNull.Value ? reader["Status"].ToString() : "Pending");
 
-                            complaint.Add("Description",
-                                reader["Description"] != DBNull.Value
-                                ? reader["Description"].ToString()
-                                : "");
+                            complaint.Add("Description", reader["Description"] != DBNull.Value ? reader["Description"].ToString() : "");
 
-                            complaint.Add("FullName",
-                                reader["CitizenName"] != DBNull.Value
-                                ? reader["CitizenName"].ToString()
-                                : "Anonymous");
+                            complaint.Add("FullName", reader["CitizenName"] != DBNull.Value ? reader["CitizenName"].ToString() : "Anonymous");
 
-                            complaint.Add("PhoneNumber",
-                                reader["CitizenPhone"] != DBNull.Value
-                                ? reader["CitizenPhone"].ToString()
-                                : "N/A");
+                            complaint.Add("PhoneNumber", reader["CitizenPhone"] != DBNull.Value ? reader["CitizenPhone"].ToString() : "N/A");
 
                             // =========================================
                             // CITIZEN IMAGE PATH FIX
                             // =========================================
-
-                            string dbImagePath =
-                                reader["ProfileImage"] != DBNull.Value
-                                ? reader["ProfileImage"].ToString()
-                                : "";
-
-                            string finalImagePath = "";
+                            string dbImagePath = reader["ProfileImage"] != DBNull.Value ? reader["ProfileImage"].ToString().Trim() : "";
+                            string finalImagePath = "/images/default-avatar.png";
 
                             if (!string.IsNullOrEmpty(dbImagePath))
                             {
-                                if (dbImagePath.StartsWith("/") ||
-                                    dbImagePath.StartsWith("~") ||
-                                    dbImagePath.StartsWith("http"))
+                                if (dbImagePath.StartsWith("/") || dbImagePath.StartsWith("~") || dbImagePath.StartsWith("http"))
                                 {
                                     finalImagePath = dbImagePath;
                                 }
                                 else
                                 {
-                                    finalImagePath = "/uploads/" + dbImagePath;
+                                    finalImagePath = "/uploads/" + dbImagePath.TrimStart('/');
                                 }
                             }
-
                             complaint.Add("CitizenImage", finalImagePath);
 
-                            // =========================================
-                            // EVIDENCE FILE PATH FIX
-                            // =========================================
-
+                            // Evidence File Path Check
                             string evidencePath = "";
-
                             if (reader["EvidenceFile"] != DBNull.Value)
                             {
-                                evidencePath = reader["EvidenceFile"].ToString();
-
-                                // Agar database me sirf filename save hai
-                                if (!evidencePath.StartsWith("/") &&
-                                    !evidencePath.StartsWith("http"))
+                                evidencePath = reader["EvidenceFile"].ToString().Trim();
+                                if (!evidencePath.StartsWith("/") && !evidencePath.StartsWith("http") && !evidencePath.StartsWith("~"))
                                 {
                                     evidencePath = "/uploads/evidence/" + evidencePath;
                                 }
                             }
-
                             complaint.Add("EvidenceFile", evidencePath);
 
-                            // =========================================
-                            // ASSIGNED OFFICERS
-                            // =========================================
-
-                            complaint.Add("AssignedOfficers",
-                                reader["AssignedOfficers"] != DBNull.Value
-                                ? reader["AssignedOfficers"].ToString()
-                                : "");
+                            complaint.Add("AssignedOfficers", reader["AssignedOfficers"] != DBNull.Value ? reader["AssignedOfficers"].ToString() : "");
 
                             allComplaints.Add(complaint);
                         }
@@ -537,18 +471,13 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
             // =========================================
             // OFFICERS DROPDOWN
             // =========================================
-
             List<dynamic> officersList = new List<dynamic>();
-
             using (SqlConnection con2 = new SqlConnection(_connectionString))
             {
-                string officerQuery =
-                    "SELECT Id, Name, Rank FROM Officers WHERE Status = 'Active' ORDER BY Name ASC";
-
+                string officerQuery = "SELECT Id, Name, Rank FROM Officers WHERE Status = 'Active' ORDER BY Name ASC";
                 using (SqlCommand cmd2 = new SqlCommand(officerQuery, con2))
                 {
                     con2.Open();
-
                     using (SqlDataReader reader2 = cmd2.ExecuteReader())
                     {
                         while (reader2.Read())
@@ -556,10 +485,7 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                             officersList.Add(new
                             {
                                 Id = Convert.ToInt32(reader2["Id"]),
-                                FullName = reader2["Name"].ToString()
-                                           + " ("
-                                           + reader2["Rank"].ToString()
-                                           + ")"
+                                FullName = reader2["Name"].ToString() + " (" + reader2["Rank"].ToString() + ")"
                             });
                         }
                     }
@@ -576,28 +502,20 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult CompleteComplaint(int id)
         {
-            // 1. Check karein ke admin login hai ya nahi
             if (!IsAdminAuthenticated()) return RedirectToAction("AdminLogin", "Account");
 
-            // 2. Database mein status update karne ki logic
             using (SqlConnection con = new SqlConnection(_connectionString))
             {
-                // Case ko close ya complete karne ke liye status badal rahe hain
                 string query = "UPDATE Complaints SET Status = 'Completed' WHERE ID = @id";
-
                 using (SqlCommand cmd = new SqlCommand(query, con))
                 {
                     cmd.Parameters.AddWithValue("@id", id);
-
                     con.Open();
-                    cmd.ExecuteNonQuery(); // Query run ho jayegi
+                    cmd.ExecuteNonQuery();
                 }
             }
-
-            // 3. Status badalne ke baad wapas usi list wale page par bhej dein jahan updated data dikhega
             return RedirectToAction("CrimeReports");
         }
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -607,34 +525,80 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
 
             using (SqlConnection con = new SqlConnection(_connectionString))
             {
-                // Pehle check karein ke yeh officer is complaint ko pehle se assigned to nahi hai?
-                string checkQuery = "SELECT COUNT(1) FROM ComplaintAssignments WHERE ComplaintId = @cId AND OfficerId = @oId";
-
                 con.Open();
+
+                string checkQuery = "SELECT COUNT(1) FROM ComplaintAssignments WHERE ComplaintId = @cId AND OfficerId = @oId";
+                int count = 0;
                 using (SqlCommand checkCmd = new SqlCommand(checkQuery, con))
                 {
                     checkCmd.Parameters.AddWithValue("@cId", complaintId);
                     checkCmd.Parameters.AddWithValue("@oId", officerId);
-                    int count = Convert.ToInt32(checkCmd.ExecuteScalar());
+                    count = Convert.ToInt32(checkCmd.ExecuteScalar());
+                }
 
-                    if (count == 0) // Agar assigned nahi hai to insert karein
+                if (count == 0)
+                {
+                    string insertQuery = "INSERT INTO ComplaintAssignments (ComplaintId, OfficerId, AssignedDate) VALUES (@cId, @oId, GETDATE())";
+                    using (SqlCommand insertCmd = new SqlCommand(insertQuery, con))
                     {
-                        string insertQuery = "INSERT INTO ComplaintAssignments (ComplaintId, OfficerId, AssignedDate) VALUES (@cId, @oId, @date)";
-                        using (SqlCommand insertCmd = new SqlCommand(insertQuery, con))
-                        {
-                            insertCmd.Parameters.AddWithValue("@cId", complaintId);
-                            insertCmd.Parameters.AddWithValue("@oId", officerId);
-                            insertCmd.Parameters.AddWithValue("@date", DateTime.Now);
-                            insertCmd.ExecuteNonQuery();
-                        }
+                        insertCmd.Parameters.AddWithValue("@cId", complaintId);
+                        insertCmd.Parameters.AddWithValue("@oId", officerId);
+                        insertCmd.ExecuteNonQuery();
+                    }
 
-                        // Jaise hi koi officer assign ho, automatically status 'In Progress' kar dein
-                        string updateStatusQuery = "UPDATE Complaints SET Status = 'In Progress' WHERE ID = @cId AND Status = 'Pending'";
-                        using (SqlCommand updateCmd = new SqlCommand(updateStatusQuery, con))
+                    string updateStatusQuery = "UPDATE Complaints SET Status = 'In Progress' WHERE ID = @cId";
+                    using (SqlCommand updateCmd = new SqlCommand(updateStatusQuery, con))
+                    {
+                        updateCmd.Parameters.AddWithValue("@cId", complaintId);
+                        updateCmd.ExecuteNonQuery();
+                    }
+
+                    int chatId = 0;
+                    string getChatQuery = "SELECT ChatId FROM GroupChats WHERE ComplaintId = @cId AND IsDeleted = 0";
+                    using (SqlCommand getChatCmd = new SqlCommand(getChatQuery, con))
+                    {
+                        getChatCmd.Parameters.AddWithValue("@cId", complaintId);
+                        var res = getChatCmd.ExecuteScalar();
+                        if (res != null) chatId = Convert.ToInt32(res);
+                    }
+
+                    if (chatId == 0)
+                    {
+                        string createChatQuery = "INSERT INTO GroupChats (ComplaintId) OUTPUT INSERTED.ChatId VALUES (@cId)";
+                        using (SqlCommand createChatCmd = new SqlCommand(createChatQuery, con))
                         {
-                            updateCmd.Parameters.AddWithValue("@cId", complaintId);
-                            updateCmd.ExecuteNonQuery();
+                            createChatCmd.Parameters.AddWithValue("@cId", complaintId);
+                            chatId = Convert.ToInt32(createChatCmd.ExecuteScalar());
                         }
+                    }
+
+                    string officerDetailsQuery = "SELECT Name, Rank, PhoneNumber FROM Officers WHERE Id = @oId";
+                    string officerName = "", officerRank = "", officerPhone = "";
+                    using (SqlCommand offCmd = new SqlCommand(officerDetailsQuery, con))
+                    {
+                        offCmd.Parameters.AddWithValue("@oId", officerId);
+                        using (SqlDataReader offReader = offCmd.ExecuteReader())
+                        {
+                            if (offReader.Read())
+                            {
+                                officerName = offReader["Name"].ToString();
+                                officerRank = offReader["Rank"].ToString();
+                                officerPhone = offReader["PhoneNumber"] != DBNull.Value ? offReader["PhoneNumber"].ToString() : "N/A";
+                            }
+                        }
+                    }
+
+                    string systemMessage = $"🚨 *System Alert*: Your case has been Approved and moved to *In Progress*!\n" +
+                                           $"👮 Assigned Officer: {officerRank} {officerName}\n" +
+                                           $"📞 Contact Number: {officerPhone}\n" +
+                                           $"Please coordinate here for updates.";
+
+                    string insertMsgQuery = "INSERT INTO ChatMessages (ChatId, SenderType, SenderName, MessageText) VALUES (@chatId, 'System', 'CrimeVision Bot', @msg)";
+                    using (SqlCommand msgCmd = new SqlCommand(insertMsgQuery, con))
+                    {
+                        msgCmd.Parameters.AddWithValue("@chatId", chatId);
+                        msgCmd.Parameters.AddWithValue("@msg", systemMessage);
+                        msgCmd.ExecuteNonQuery();
                     }
                 }
             }
@@ -650,17 +614,76 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
 
             using (SqlConnection con = new SqlConnection(_connectionString))
             {
-                string query = "UPDATE Complaints SET Status = 'In Progress' WHERE ID = @id";
-                using (SqlCommand cmd = new SqlCommand(query, con))
+                con.Open();
+
+                // 1. Status ko 'Approved' badalne ke liye SQL command active kar di hai
+                string updateQuery = "UPDATE Complaints SET Status = 'Approved' WHERE ID = @id";
+                using (SqlCommand cmdUpdate = new SqlCommand(updateQuery, con))
+                {
+                    cmdUpdate.Parameters.AddWithValue("@id", id);
+                    cmdUpdate.ExecuteNonQuery();
+                }
+
+                // ==========================================================
+                // NEW: Case ki info (Crime Type aur Location) fetch karne ka logic
+                // ==========================================================
+                string crimeType = "N/A";
+                string location = "N/A";
+                string fetchCaseQuery = "SELECT CrimeType, Location FROM Complaints WHERE ID = @id";
+                using (SqlCommand cmdFetch = new SqlCommand(fetchCaseQuery, con))
+                {
+                    cmdFetch.Parameters.AddWithValue("@id", id);
+                    using (SqlDataReader caseReader = cmdFetch.ExecuteReader())
+                    {
+                        if (caseReader.Read())
+                        {
+                            crimeType = caseReader["CrimeType"] != DBNull.Value ? caseReader["CrimeType"].ToString() : "N/A";
+                            location = caseReader["Location"] != DBNull.Value ? caseReader["Location"].ToString() : "N/A";
+                        }
+                    }
+                }
+                // ==========================================================
+
+                // 2. Chatroom setup logic
+                int chatId = 0;
+                string checkChatQuery = "SELECT ChatId FROM GroupChats WHERE ComplaintId = @id AND IsDeleted = 0";
+                using (SqlCommand cmd = new SqlCommand(checkChatQuery, con))
                 {
                     cmd.Parameters.AddWithValue("@id", id);
-                    con.Open();
-                    cmd.ExecuteNonQuery();
+                    var res = cmd.ExecuteScalar();
+                    if (res != null) { chatId = Convert.ToInt32(res); }
+                }
+
+                if (chatId == 0)
+                {
+                    string createChatQuery = "INSERT INTO GroupChats (ComplaintId) OUTPUT INSERTED.ChatId VALUES (@id)";
+                    using (SqlCommand cmd = new SqlCommand(createChatQuery, con))
+                    {
+                        cmd.Parameters.AddWithValue("@id", id);
+                        chatId = Convert.ToInt32(cmd.ExecuteScalar());
+                    }
+                }
+
+                // 3. System bot auto-message push (Ab details ke saath)
+                string customSystemMessage = $"🚨 *Case Approved* 🚨\n\n" +
+                                             $"📂 *Case ID:* #{id}\n" +
+                                             $"⚠️ *Crime Type:* {crimeType}\n" +
+                                             $"📍 *Location:* {location}\n\n" +
+                                             $"Investigation Room is now officially open. Please coordinate here.";
+
+                string systemMsgQuery = @"INSERT INTO ChatMessages (ChatId, SenderType, SenderName, MessageText, Timestamp) 
+                                  VALUES (@chatId, 'System', 'System Bot', @msg, GETDATE())";
+                using (SqlCommand cmdMsg = new SqlCommand(systemMsgQuery, con))
+                {
+                    cmdMsg.Parameters.AddWithValue("@chatId", chatId);
+                    cmdMsg.Parameters.AddWithValue("@msg", customSystemMessage); // Naya formatted message pass kiya
+                    cmdMsg.ExecuteNonQuery();
                 }
             }
+
+            // FIX: Sahi route "CrimeReports" dashboard par redirect karwaya hai
             return RedirectToAction("CrimeReports");
         }
-
         // ==========================================
         // 8. PUBLIC ALERTS MANAGEMENT
         // ==========================================
