@@ -202,6 +202,12 @@
                    asp-action="AlertsList">
                     <i class="fa-solid fa-triangle-exclamation"></i> Broadcast Alert
                 </a>
+               <a class="@(ViewContext.RouteData.Values["action"]?.ToString() == "ViewChat" && ViewContext.RouteData.Values["controller"]?.ToString() == "Chat" ? "active" : "")"
+                  asp-controller="Chat"
+                  asp-action="ViewChat">
+                 <i class="fa-solid fa-comments"></i> Case Investigation Rooms
+                </a>
+
 
                 <!-- === LOGOUT LINK === -->
                 <a href="@Url.Action("AdminLogin", "Account")">

@@ -157,7 +157,7 @@
             line-height: 1.5;
         }
 
-        /* Citizen Specific Bubble Aligments */
+        /* Citizen Specific Bubble Alignments */
         .bubble-citizen {
             align-self: flex-end;
             background: linear-gradient(135deg, #06b6d4, #0891b2);
@@ -253,7 +253,11 @@
 
     <div class="header">
         <div class="logo"><i class="fa-solid fa-user-shield"></i> CrimeVision Citizen Node</div>
-        <a href="/Citizen/Dashboard" class="back-dashboard"><i class="fa-solid fa-table-columns"></i> Dashboard</a>
+
+        <!-- 🔥 FIXED: MVC Tag Helper Link mapped properly for Citizen Dashboard -->
+        <a asp-action="Dashboard" asp-controller="Citizen" class="back-dashboard">
+            <i class="fa-solid fa-table-columns"></i> Dashboard
+        </a>
     </div>
 
     <div class="container-box">
@@ -277,7 +281,6 @@
                         }
                         else
                         {
-                            // Agar message Admin ka hai to left pe, Citizen ka hai to right pe
                             string clientClass = (msg.SenderType == "Admin") ? "bubble-admin" : "bubble-citizen";
                             <div class="bubble @clientClass">
                                 <span style="font-size:11px; font-weight:600; opacity:0.8; display:block; margin-bottom:2px;">@msg.SenderName</span>
@@ -297,12 +300,13 @@
             </div>
 
             <div class="panel-footer">
-                <form action="/Chat/SendCitizenMessage" method="post" class="input-bar">
+                <!-- 🔥 OPTIMIZED: Handled route directly mapping forms cleanly -->
+                <form asp-action="SendCitizenMessage" asp-controller="Chat" method="post" class="input-bar">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="chatId" value="@ViewBag.ActiveChatId" />
                     <input type="hidden" name="citizenPhone" value="@citizenPhone" />
 
-                    <input type="text" name="messageText" class="client-input" placeholder="Type your secure message message here..." required autocomplete="off" />
+                    <input type="text" name="messageText" class="client-input" placeholder="Type your secure message here..." required autocomplete="off" />
                     <button type="submit" class="btn-send"><i class="fa-solid fa-paper-plane"></i> Send</button>
                 </form>
             </div>
@@ -312,8 +316,12 @@
     <div class="footer-text">Protected by federal criminal tracking infrastructure system © 2026</div>
 
     <script>
-        var logBox = document.getElementById("citizenLogs");
-        if(logBox) { logBox.scrollTop = logBox.scrollHeight; }
+        window.addEventListener('DOMContentLoaded', (event) => {
+            var logBox = document.getElementById("citizenLogs");
+            if(logBox) {
+                logBox.scrollTop = logBox.scrollHeight;
+            }
+        });
     </script>
 </body>
 </html>

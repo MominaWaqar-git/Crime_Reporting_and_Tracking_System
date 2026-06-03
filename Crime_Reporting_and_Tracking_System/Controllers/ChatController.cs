@@ -1,5 +1,6 @@
 ﻿using Crime_Reporting_and_Tracking_System.Data;
 using Crime_Reporting_and_Tracking_System.Models;
+using CrimeReportingSystem.Models;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -22,42 +23,36 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
         [HttpGet]
         public IActionResult ViewChat(string citizenPhone)
         {
-            // Security check taake context null hone par crash na ho
             if (_context.GroupChats == null || _context.Complaints == null || _context.Users == null || _context.Officers == null)
             {
                 return Content("Database tables properly mapped nahi hain DbContext mein.");
             }
 
-            // Data ko memory mein le rahe hain taake EF Core complex queries par translate error na de
             var rawChatRooms = _context.GroupChats.Where(g => g.IsDeleted == false).ToList();
             var complaintsList = _context.Complaints.ToList();
             var usersList = _context.Users.ToList();
             var officersList = _context.Officers.ToList();
 
-            // Clean Sidebar list building
             var sidebarList = (from gc in rawChatRooms
                                join comp in complaintsList on gc.ComplaintId equals comp.ID into compJoin
                                from comp in compJoin.DefaultIfEmpty()
+                               where comp != null
 
-                               where comp != null // Sirf valid mapped complaints/chats uthein
-
-                               // Users (Citizen) table se match karein phone number
                                join usr in usersList on comp.CitizenPhone equals usr.PhoneNumber into userJoin
                                from usr in userJoin.DefaultIfEmpty()
 
-                               group new { gc, comp, usr } by comp.CitizenPhone into g
+                               join off in officersList on comp.CitizenPhone equals off.PhoneNumber into officerJoin
+                               from off in officerJoin.DefaultIfEmpty()
+
+                               group new { gc, comp, usr, off } by comp.CitizenPhone into g
                                select new
                                {
                                    CitizenPhone = g.Key,
-                                   // Agar Users table mein naam hai toh wo, nahi toh Complaint wala naam
-                                   CitizenName = g.FirstOrDefault().usr != null
-                                                  ? g.FirstOrDefault().usr.FullName
-                                                  : g.FirstOrDefault().comp.CitizenName,
+                                   CitizenName = g.FirstOrDefault().usr != null ? g.FirstOrDefault().usr.FullName :
+                                                (g.FirstOrDefault().off != null ? g.FirstOrDefault().off.Name : g.FirstOrDefault().comp.CitizenName),
 
-                                   // AVATAR FIX: Agar user ki image hai toh wo, nahi toh default avatar path
-                                   ProfileImage = (g.FirstOrDefault().usr != null && !string.IsNullOrEmpty(g.FirstOrDefault().usr.ProfileImage))
-                                                  ? g.FirstOrDefault().usr.ProfileImage
-                                                  : "/images/default-avatar.png",
+                                   // 🔥 FIXED: Real-time image normalization for backend sidebar grid
+                                   ProfileImage = GetNormalizedImagePath(g.FirstOrDefault().usr, g.FirstOrDefault().off),
 
                                    ChatId = g.FirstOrDefault().gc.ChatId
                                }).ToList();
@@ -67,7 +62,6 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
 
             List<ChatMessages> messagesToShow = new List<ChatMessages>();
 
-            // Agar koi chat selected hai, toh uske messages load karein
             if (!string.IsNullOrEmpty(citizenPhone))
             {
                 var activeRoom = _context.GroupChats
@@ -78,13 +72,11 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                 {
                     ViewBag.ActiveChatId = activeRoom.ChatId;
 
-                    // Messages fetch karein jo delete nahi hue
                     messagesToShow = _context.ChatMessages
                         .Where(m => m.ChatId == activeRoom.ChatId && m.IsDeleted == false)
                         .OrderBy(m => m.Timestamp)
                         .ToList();
 
-                    // Unread messages ko Read (Seen) mark karein
                     var unreadMsgs = _context.ChatMessages
                         .Where(m => m.ChatId == activeRoom.ChatId && m.IsRead == false && m.SenderType != "Admin")
                         .ToList();
@@ -95,11 +87,13 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                         _context.SaveChanges();
                     }
 
-                    // Header par select kiye gaye bande ka naam dikhane ke liye
                     var currentCitizen = complaintsList.FirstOrDefault(c => c.CitizenPhone == citizenPhone);
                     var currentUser = usersList.FirstOrDefault(u => u.PhoneNumber == citizenPhone);
+                    var currentOfficer = officersList.FirstOrDefault(o => o.PhoneNumber == citizenPhone);
 
-                    ViewBag.SelectedCitizenName = currentUser != null ? currentUser.FullName : (currentCitizen != null ? currentCitizen.CitizenName : "Unknown");
+                    ViewBag.SelectedCitizenName = currentUser != null ? currentUser.FullName :
+                                                 (currentOfficer != null ? currentOfficer.Name :
+                                                 (currentCitizen != null ? currentCitizen.CitizenName : "Unknown"));
                     ViewBag.SelectedCitizenPhoneInfo = citizenPhone;
                 }
             }
@@ -107,8 +101,43 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
             return View(messagesToShow);
         }
 
+        // 🔥 HELPER METHOD: Profile picture path sanitizer engine
+        private static string GetNormalizedImagePath(User usr, Officer off)
+        {
+            string rawPath = "";
+
+            if (usr != null && !string.IsNullOrEmpty(usr.ProfileImage))
+            {
+                rawPath = usr.ProfileImage.Trim();
+            }
+            else if (off != null && !string.IsNullOrEmpty(off.ProfilePicturePath))
+            {
+                rawPath = off.ProfilePicturePath.Trim();
+            }
+
+            if (string.IsNullOrEmpty(rawPath))
+            {
+                return "/images/default-avatar.png";
+            }
+
+            // Remove legacy MVC path tokens
+            rawPath = rawPath.Replace("~", "").Replace("\\", "/");
+
+            if (rawPath.StartsWith("/") || rawPath.StartsWith("http"))
+            {
+                return rawPath;
+            }
+
+            if (rawPath.StartsWith("uploads/", StringComparison.OrdinalIgnoreCase))
+            {
+                return "/" + rawPath;
+            }
+
+            return "/uploads/" + rawPath;
+        }
+
         // ==========================================
-        // 2. CREATE NEW CHAT (Sirf Name aur Phone se Entry)
+        // 2. CREATE NEW CHAT (Direct Pipeline Entry)
         // ==========================================
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -119,13 +148,11 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                 return RedirectToAction("ViewChat");
             }
 
-            // Step 1: Database constraint se bachne ke liye link banayein
             var existingComplaint = _context.Complaints.FirstOrDefault(c => c.CitizenPhone == personPhone);
             int finalComplaintId = 0;
 
             if (existingComplaint == null)
             {
-                // Agar Officer hai toh description mein 'Officer Chat Pipeline' likha aayega
                 var autoComplaint = new Complaint
                 {
                     CrimeType = isOfficer ? "Officer Communication" : "Direct Chat Reference",
@@ -134,11 +161,11 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                     Description = isOfficer ? $"Direct line with Officer {personName}." : "Directly initiated citizen chat link.",
                     Status = "Active",
                     CitizenName = personName,
-                    CitizenPhone = personPhone // Idhar officer ya citizen ka phone number map ho jayega
+                    CitizenPhone = personPhone
                 };
 
                 _context.Complaints.Add(autoComplaint);
-                _context.SaveChanges(); // SQL Server automatic unique ID generate kar dega
+                _context.SaveChanges();
                 finalComplaintId = autoComplaint.ID;
             }
             else
@@ -146,7 +173,6 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                 finalComplaintId = existingComplaint.ID;
             }
 
-            // Step 2: Chat room create ya reactivate karein
             var existingRoom = _context.GroupChats.FirstOrDefault(g => g.ComplaintId == finalComplaintId);
 
             if (existingRoom != null)
@@ -185,6 +211,7 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
 
             return RedirectToAction("ViewChat", new { citizenPhone = personPhone });
         }
+
         // ==========================================
         // 3. SEND MESSAGE (Admin / Officers Desk)
         // ==========================================
@@ -222,7 +249,7 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
             var msg = _context.ChatMessages.FirstOrDefault(m => m.MessageId == messageId);
             if (msg != null)
             {
-                msg.IsDeleted = true; // Table column IsDeleted BIT matching
+                msg.IsDeleted = true;
                 _context.SaveChanges();
             }
 
@@ -247,7 +274,7 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
         }
 
         // ==========================================
-        // 6. CITIZEN VIEW PORTAL (User Dashboard side chat)
+        // 6. CITIZEN VIEW PORTAL (Core Route Engine)
         // ==========================================
         [HttpGet]
         public IActionResult CitizenPortal(string phone)
@@ -271,6 +298,20 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
 
             ViewBag.CitizenPhone = phone;
             return View("CitizenChat", msgs);
+        }
+
+        // ==========================================
+        // 6b. 🔥 NEW ALIAS: To Support view dynamic tags (asp-action="CitizenChat")
+        // ==========================================
+        [HttpGet]
+        public IActionResult CitizenChat(string phone)
+        {
+            // Session fallback if phone query key is dropped from view request context
+            if (string.IsNullOrEmpty(phone))
+            {
+                phone = ViewBag.CitizenPhone ?? HttpContext.Session.GetString("UserPhone");
+            }
+            return RedirectToAction("CitizenPortal", new { phone = phone });
         }
 
         // ==========================================

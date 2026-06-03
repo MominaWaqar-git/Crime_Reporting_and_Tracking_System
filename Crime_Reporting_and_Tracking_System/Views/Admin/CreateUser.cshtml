@@ -188,7 +188,7 @@
     <h3 style="color: white; margin: 0 0 8px 0; font-weight: 600; font-size: 22px; text-align: left;">Register New Citizen Profile</h3>
     <p class="form-header-desc">Input accurate identity data to generate the active civilian profile.</p>
 
-    <form asp-action="AddUser" asp-controller="Admin" method="post" enctype="multipart/form-data">
+    <form asp-action="CreateUser" asp-controller="Admin" method="post" enctype="multipart/form-data">
 
         <div class="grid-2">
             <div class="form-group">
@@ -216,7 +216,6 @@
             </div>
         </div>
 
-        <!-- === NAYI PASSWORD FIELDS === -->
         <div class="grid-2">
             <div class="form-group">
                 <label asp-for="Password">Account Password</label>
@@ -253,7 +252,6 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 
-    <!-- Real-time Password Matching Validation Script -->
     <script>
         const password = document.querySelector('input[name="Password"]');
         const confirmPassword = document.getElementById('confirmPassword');
