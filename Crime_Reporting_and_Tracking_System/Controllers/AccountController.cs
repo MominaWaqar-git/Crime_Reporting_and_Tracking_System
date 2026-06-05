@@ -238,17 +238,29 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                         (complaintsList).Clear();
                         while (reader.Read())
                         {
+                            string crimeType = reader["CrimeType"].ToString();
+                            string statusText = reader["Status"].ToString();
+
+                            // 🚨 CHAT FILTER: System entries ko count aur view se skip karne ke liye
+                            if (crimeType.Contains("officer Communication", StringComparison.OrdinalIgnoreCase) ||
+                                crimeType.Contains("direct chat reference", StringComparison.OrdinalIgnoreCase) ||
+                                statusText.Contains("officer Communication", StringComparison.OrdinalIgnoreCase) ||
+                                statusText.Contains("direct chat reference", StringComparison.OrdinalIgnoreCase))
+                            {
+                                continue;
+                            }
+
                             var complaint = new System.Dynamic.ExpandoObject() as IDictionary<string, object>;
                             complaint.Add("ID", reader["ID"]);
-                            complaint.Add("CrimeType", reader["CrimeType"].ToString());
+                            complaint.Add("CrimeType", crimeType);
                             complaint.Add("IncidentDate", Convert.ToDateTime(reader["IncidentDate"]).ToString("dd/MM/yyyy"));
                             complaint.Add("Location", reader["Location"].ToString());
-                            complaint.Add("Status", reader["Status"].ToString());
+                            complaint.Add("Status", statusText);
 
                             complaintsList.Add(complaint);
 
                             totalCases++;
-                            string status = reader["Status"].ToString().ToLower();
+                            string status = statusText.ToLower();
                             if (status.Contains("progress") || status.Contains("pending"))
                             {
                                 activeCases++;
@@ -287,11 +299,23 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                     {
                         while (reader.Read())
                         {
+                            string crimeType = reader["CrimeType"].ToString();
+                            string statusText = reader["Status"].ToString();
+
+                            // 🚨 CHAT FILTER: MyComplaints screen ke table se bhi in system entries ko hide karne ke liye
+                            if (crimeType.Contains("officer Communication", StringComparison.OrdinalIgnoreCase) ||
+                                crimeType.Contains("direct chat reference", StringComparison.OrdinalIgnoreCase) ||
+                                statusText.Contains("officer Communication", StringComparison.OrdinalIgnoreCase) ||
+                                statusText.Contains("direct chat reference", StringComparison.OrdinalIgnoreCase))
+                            {
+                                continue;
+                            }
+
                             var complaint = new System.Dynamic.ExpandoObject() as IDictionary<string, object>;
                             complaint.Add("ID", reader["ID"]);
-                            complaint.Add("CrimeType", reader["CrimeType"].ToString());
+                            complaint.Add("CrimeType", crimeType);
                             complaint.Add("Location", reader["Location"].ToString());
-                            complaint.Add("Status", reader["Status"].ToString());
+                            complaint.Add("Status", statusText);
 
                             complaintsList.Add(complaint);
                         }
@@ -628,7 +652,8 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                 }
             }
 
-            HttpContext.Session.Clear(); // Erasing configuration state post execution
+            // Erasing configuration state post execution
+            HttpContext.Session.Clear();
             TempData["SuccessMessage"] = "Your account has been permanently deleted.";
             return RedirectToAction("UserLogin", "Account");
         }
