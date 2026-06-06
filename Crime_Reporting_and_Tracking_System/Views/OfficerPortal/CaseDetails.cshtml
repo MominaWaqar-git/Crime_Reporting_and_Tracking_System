@@ -24,11 +24,12 @@
             body {
                 background: #050816;
                 color: white;
-                padding: 40px;
+                padding: 20px;
                 min-height: 100vh;
                 display: flex;
-                align-items: center;
+                align-items: flex-start; /* Upar se start ho raha hai */
                 justify-content: center;
+                padding-top: 50px;
             }
 
             .blob {
@@ -58,10 +59,10 @@
             .details-box {
                 background: rgba(255,255,255,0.03);
                 backdrop-filter: blur(20px);
-                padding: 40px;
+                padding: 30px; /* Padding kam ki taake height compact ho */
                 border-radius: 20px;
                 border: 1px solid rgba(255,255,255,0.08);
-                max-width: 800px;
+                max-width: 1000px; /* Width barha di */
                 width: 100%;
             }
 
@@ -69,7 +70,7 @@
                 height: 3px;
                 width: 100%;
                 background: linear-gradient(90deg, var(--blue), var(--purple), var(--cyan));
-                margin: 20px 0;
+                margin: 15px 0;
                 border-radius: 2px;
             }
 
@@ -81,28 +82,29 @@
 
             .badge {
                 background: linear-gradient(90deg, var(--blue), var(--purple));
-                padding: 8px 20px;
+                padding: 6px 16px;
                 border-radius: 20px;
                 font-weight: 600;
+                font-size: 0.9rem;
             }
 
             .info-grid {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 20px;
-                margin-top: 20px;
+                gap: 15px;
+                margin-top: 15px;
             }
 
             .item {
                 background: rgba(255,255,255,0.03);
-                padding: 18px;
+                padding: 12px; /* Padding kam ki */
                 border-radius: 12px;
                 border: 1px solid rgba(255,255,255,0.05);
             }
 
             .upload-box {
-                margin-top: 30px;
-                padding: 20px;
+                margin-top: 15px; /* Margin kam kiya */
+                padding: 15px;
                 border: 1px solid rgba(255,255,255,0.1);
                 border-radius: 15px;
                 background: rgba(0,0,0,0.2);
@@ -112,7 +114,7 @@
                 background: var(--purple);
                 border: none;
                 color: white;
-                padding: 12px;
+                padding: 10px;
                 border-radius: 8px;
                 cursor: pointer;
                 width: 100%;
@@ -134,7 +136,7 @@
 
         @if (TempData["Success"] != null)
         {
-            <div style="color:#4ade80; margin-bottom:20px; text-align:center;">@TempData["Success"]</div>
+            <div style="color:#4ade80; margin-bottom:15px; text-align:center;">@TempData["Success"]</div>
         }
 
         <div class="info-grid">
@@ -144,30 +146,30 @@
             <div class="item"><strong>Contact:</strong><br>@Model["CitizenPhone"]</div>
         </div>
 
-        <div class="item" style="margin-top:20px;"><strong>Location:</strong><br>@Model["Location"]</div>
-        <div class="item" style="margin-top:20px;"><strong>Description:</strong><br><p style="color:#aaa;">@Model["Description"]</p></div>
+        <div class="item" style="margin-top:15px;"><strong>Location:</strong><br>@Model["Location"]</div>
+        <div class="item" style="margin-top:15px;"><strong>Description:</strong><br><p style="color:#aaa; font-size: 0.95rem;">@Model["Description"]</p></div>
 
         <div class="upload-box">
             <strong>Attach Evidence:</strong>
             <form asp-action="UploadEvidence" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="complaintId" value="@Model["ID"]" />
-                <select name="category" style="width:100%; padding:10px; margin:10px 0; background:#050816; color:white; border:1px solid #374151; border-radius:5px;">
+                <select name="category" style="width:100%; padding:8px; margin:8px 0; background:#050816; color:white; border:1px solid #374151; border-radius:5px;">
                     <option value="Photo">Photo Evidence</option>
                     <option value="Document">Official Document</option>
                     <option value="Digital">Digital/CCTV</option>
                 </select>
-                <input type="file" name="evidenceFile" required style="color:#aaa; margin-bottom:10px;" />
+                <input type="file" name="evidenceFile" required style="color:#aaa; margin-bottom:10px; font-size: 0.9rem;" />
                 <button type="submit" class="btn-action">Upload Evidence</button>
             </form>
         </div>
 
-        <div class="upload-box" style="margin-top: 20px; border: 1px solid #374151;">
+        <div class="upload-box" style="margin-top: 15px; border: 1px solid #374151;">
             <strong>Evidence History:</strong>
             @if (ViewBag.EvidenceFiles != null && ((List<string>)ViewBag.EvidenceFiles).Count > 0)
             {
                 foreach (var file in (List<string>)ViewBag.EvidenceFiles)
                 {
-                    <div style="margin-top:10px; background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; border-left:4px solid var(--cyan);">
+                    <div style="margin-top:8px; background:rgba(255,255,255,0.05); padding:8px; border-radius:8px; border-left:4px solid var(--cyan);">
                         📄 <span style="font-size: 12px; color: #aaa;">@file.Split('_').Last()</span>
                         <a href="~/uploads/@file" target="_blank" style="color:var(--cyan); float:right; text-decoration:none; font-weight:600;">View</a>
                     </div>
@@ -175,7 +177,7 @@
             }
             else
             {
-                <p style="color:#666; font-size: 13px; margin-top:10px;">No evidence uploaded for this case yet.</p>
+                <p style="color:#666; font-size: 12px; margin-top:10px;">No evidence uploaded yet.</p>
             }
         </div>
 
