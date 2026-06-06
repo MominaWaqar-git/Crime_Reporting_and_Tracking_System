@@ -1,0 +1,176 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Add Criminal - CrimeVision</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
+    <style>
+            :root {
+                --blue: #2563eb;
+                --purple: #9333ea;
+                --cyan: #06b6d4;
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+                font-family: 'Poppins', sans-serif;
+            }
+
+            body {
+                background: #050816;
+                color: white;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+
+            /* Blobs - Added for consistency */
+            .blob {
+                position: fixed;
+                border-radius: 50%;
+                filter: blur(120px);
+                opacity: .4;
+                z-index: -1;
+            }
+
+            .b1 {
+                width: 400px;
+                height: 400px;
+                background: var(--blue);
+                top: -100px;
+                left: -100px;
+            }
+
+            .b2 {
+                width: 400px;
+                height: 400px;
+                background: var(--purple);
+                bottom: -100px;
+                right: -100px;
+            }
+
+            /* Header - Matches Index */
+            .header {
+                height: 70px;
+                width: 100%;
+                padding: 0 5%;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                background: rgba(255,255,255,0.04);
+                backdrop-filter: blur(25px);
+                border-bottom: 1px solid rgba(255,255,255,0.08);
+                position: fixed;
+                top: 0;
+                z-index: 100;
+            }
+
+                .header::after {
+                    content: "";
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    height: 2px;
+                    width: 100%;
+                    background: linear-gradient(90deg, var(--blue), var(--purple), var(--cyan));
+                }
+
+            .logo {
+                font-size: 22px;
+                font-weight: 700;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+                .logo i {
+                    color: #60a5fa !important;
+                }
+
+            /* Page Content */
+            .page-content {
+                flex: 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding-top: 100px;
+                padding-bottom: 50px;
+            }
+
+            /* Glassmorphic Box - Matches Index Container */
+            .box {
+                width: 450px;
+                background: rgba(255,255,255,0.03);
+                padding: 40px;
+                border-radius: 20px;
+                border: 1px solid rgba(255,255,255,0.08);
+                backdrop-filter: blur(20px);
+            }
+
+            /* Form Styling */
+            input, textarea, select {
+                width: 100%;
+                margin: 10px 0;
+                padding: 12px;
+                background: rgba(0,0,0,0.3);
+                border: 1px solid #374151;
+                color: white;
+                border-radius: 8px;
+            }
+
+            button {
+                width: 100%;
+                padding: 12px;
+                background: linear-gradient(90deg, var(--blue), var(--purple));
+                border: none;
+                color: white;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: 600;
+                margin-top: 15px;
+            }
+
+            /* Footer - Matches Index */
+            .footer {
+                padding: 20px;
+                text-align: center;
+                background: rgba(255,255,255,0.03);
+                border-top: 1px solid rgba(255,255,255,0.05);
+                color: white;
+            }
+    </style>
+</head>
+<body>
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+
+    <div class="header">
+        <div class="logo"><i class="fa-solid fa-shield-halved"></i> CrimeVision Officer</div>
+        <a href="@Url.Action("Index")" style="color:white; text-decoration:none;"><i class="fa-solid fa-arrow-left"></i> Back to List</a>
+    </div>
+
+    <div class="page-content">
+        <div class="box">
+            <h2 style="text-align:center; margin-bottom:20px;">Add New Criminal</h2>
+            <form asp-action="Add" method="post">
+                <input type="text" name="FullName" placeholder="Full Name" required />
+                <textarea name="CrimeHistory" placeholder="Crime History" rows="3"></textarea>
+                <select name="Status">
+                    <option value="Wanted">Wanted</option>
+                    <option value="In Custody">In Custody</option>
+                    <option value="Released">Released</option>
+                </select>
+                <button type="submit">Save Record</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="footer">© 2026 CrimeVision | Smart Crime Reporting & Tracking System</div>
+</body>
+</html>

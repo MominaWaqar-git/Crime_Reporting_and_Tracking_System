@@ -1,0 +1,210 @@
+﻿@{
+    Layout = null;
+}
+@model IEnumerable<dynamic>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Criminal Records - CrimeVision</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
+    <style>
+            :root {
+                --blue: #2563eb;
+                --purple: #9333ea;
+                --cyan: #06b6d4;
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+                font-family: 'Poppins', sans-serif;
+            }
+
+            body {
+                background: #050816;
+                color: white;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+
+            /* Header */
+            .header {
+                height: 70px;
+                width: 100%;
+                padding: 0 5%;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                background: rgba(255,255,255,0.04);
+                backdrop-filter: blur(25px);
+                border-bottom: 1px solid rgba(255,255,255,0.08);
+                position: fixed;
+                top: 0;
+                z-index: 100;
+            }
+
+                .header::after {
+                    content: "";
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    height: 2px;
+                    width: 100%;
+                    background: linear-gradient(90deg, var(--blue), var(--purple), var(--cyan));
+                }
+
+            .logo {
+                font-size: 22px;
+                font-weight: 700;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+                .logo i {
+                    color: #60a5fa !important;
+                }
+
+            /* Container - Width Increased */
+            .container {
+                max-width: 1400px;
+                width: 90%;
+                margin: 120px auto 40px auto;
+                flex: 1;
+                background: rgba(255,255,255,0.03);
+                backdrop-filter: blur(20px);
+                padding: 40px;
+                border-radius: 20px;
+                border: 1px solid rgba(255,255,255,0.08);
+            }
+
+            /* Blobs */
+            .blob {
+                position: fixed;
+                border-radius: 50%;
+                filter: blur(120px);
+                opacity: .4;
+                z-index: -1;
+            }
+
+            .b1 {
+                width: 400px;
+                height: 400px;
+                background: var(--blue);
+                top: -100px;
+                left: -100px;
+            }
+
+            .b2 {
+                width: 400px;
+                height: 400px;
+                background: var(--purple);
+                bottom: -100px;
+                right: -100px;
+            }
+
+            /* Table & Elements */
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+                background: rgba(0,0,0,0.2);
+                border-radius: 15px;
+                overflow: hidden;
+            }
+
+            th {
+                padding: 18px;
+                text-align: left;
+                color: var(--cyan);
+                border-bottom: 1px solid rgba(255,255,255,0.1);
+            }
+
+            td {
+                padding: 18px;
+                border-bottom: 1px solid rgba(255,255,255,0.05);
+            }
+
+            input {
+                background: rgba(255,255,255,0.05);
+                border: 1px solid #374151;
+                padding: 12px;
+                border-radius: 10px;
+                color: white;
+                width: 400px;
+            }
+
+            .btn-add {
+                background: var(--blue);
+                padding: 10px 20px;
+                border-radius: 10px;
+                text-decoration: none;
+                color: white;
+                font-weight: 600;
+            }
+
+            .status-badge {
+                padding: 5px 12px;
+                border-radius: 20px;
+                font-size: 12px;
+                background: rgba(37, 99, 235, 0.1);
+                border: 1px solid var(--blue);
+                color: #60a5fa;
+            }
+
+            /* Footer - Fixed color to White */
+            .footer {
+                padding: 20px;
+                text-align: center;
+                background: rgba(255,255,255,0.03);
+                border-top: 1px solid rgba(255,255,255,0.05);
+                margin-top: auto;
+                color: white;
+            }
+    </style>
+</head>
+<body>
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+
+    <div class="header">
+        <div class="logo"><i class="fa-solid fa-shield-halved"></i> CrimeVision Officer</div>
+        <a href="@Url.Action("Dashboard", "OfficerPortal")" style="color:white; text-decoration:none;"><i class="fa-solid fa-arrow-left"></i> Back</a>
+    </div>
+
+    <div class="container">
+        <h2><i class="fa-solid fa-user-secret" style="color:var(--purple);"></i> Criminal Records</h2>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
+            <input type="text" id="s" onkeyup="search()" placeholder="Search by name...">
+            <a href="@Url.Action("Add")" class="btn-add">+ Add Record</a>
+        </div>
+        <table id="tbl">
+            <thead><tr><th>Name</th><th>History</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody>
+                @foreach (var c in Model)
+                {
+                    <tr>
+                        <td style="font-weight:600;">@c.Name</td>
+                        <td style="color:#aaa;">@c.History</td>
+                        <td><span class="status-badge">@c.Status</span></td>
+                        <td><a href="@Url.Action("Delete", new { id = c.ID })" style="color:#ef4444;"><i class="fa-solid fa-trash"></i></a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="footer">© 2026 CrimeVision | Smart Crime Reporting & Tracking System</div>
+
+    <script>
+            function search() {
+                let val = document.getElementById("s").value.toLowerCase();
+                document.querySelectorAll("#tbl tbody tr").forEach(r => r.style.display = r.innerText.toLowerCase().includes(val) ? "" : "none");
+            }
+    </script>
+</body>
+</html>
