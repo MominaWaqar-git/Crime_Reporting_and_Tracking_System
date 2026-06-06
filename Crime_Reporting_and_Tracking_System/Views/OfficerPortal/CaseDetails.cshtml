@@ -31,7 +31,6 @@
                 justify-content: center;
             }
 
-            /* Dashboard wale Blobs */
             .blob {
                 position: fixed;
                 border-radius: 50%;
@@ -160,6 +159,24 @@
                 <input type="file" name="evidenceFile" required style="color:#aaa; margin-bottom:10px;" />
                 <button type="submit" class="btn-action">Upload Evidence</button>
             </form>
+        </div>
+
+        <div class="upload-box" style="margin-top: 20px; border: 1px solid #374151;">
+            <strong>Evidence History:</strong>
+            @if (ViewBag.EvidenceFiles != null && ((List<string>)ViewBag.EvidenceFiles).Count > 0)
+            {
+                foreach (var file in (List<string>)ViewBag.EvidenceFiles)
+                {
+                    <div style="margin-top:10px; background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; border-left:4px solid var(--cyan);">
+                        📄 <span style="font-size: 12px; color: #aaa;">@file.Split('_').Last()</span>
+                        <a href="~/uploads/@file" target="_blank" style="color:var(--cyan); float:right; text-decoration:none; font-weight:600;">View</a>
+                    </div>
+                }
+            }
+            else
+            {
+                <p style="color:#666; font-size: 13px; margin-top:10px;">No evidence uploaded for this case yet.</p>
+            }
         </div>
 
         <a href="@Url.Action("Dashboard", "OfficerPortal")" style="display:block; margin-top:20px; color:#60a5fa; text-align:center; text-decoration:none;">← Back to Dashboard</a>
