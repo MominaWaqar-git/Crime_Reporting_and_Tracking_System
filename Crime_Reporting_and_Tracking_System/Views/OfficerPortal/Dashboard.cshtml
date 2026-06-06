@@ -68,7 +68,6 @@
                 .logo i {
                     color: #60a5fa;
                 }
-            /* Restored original logo icon color */
 
             .page-wrapper {
                 display: flex;
@@ -99,7 +98,6 @@
                 margin-top: auto;
             }
 
-            /* Elements */
             .blob {
                 position: fixed;
                 border-radius: 50%;
@@ -201,6 +199,8 @@
             </div>
             <div class="menu">
                 <a class="active" href="#"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+                <!-- Chat Discussion Link Added -->
+                <a asp-controller="Communication" asp-action="ChatList"><i class="fa-solid fa-comments"></i> Case Discussions</a>
                 <a asp-controller="OfficerPortal" asp-action="Logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
             </div>
         </div>
@@ -261,6 +261,5 @@
     <script>
             function showModal(id) { document.getElementById('complaintId').value = id; document.getElementById('statusModal').style.display = 'flex'; }
             function closeModal() { document.getElementById('statusModal').style.display = 'none'; }
-    </script>
-</body>
+    </script></body>
 </html>

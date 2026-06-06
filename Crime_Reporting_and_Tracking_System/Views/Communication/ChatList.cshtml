@@ -1,0 +1,225 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Case Discussions - CrimeVision</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
+    <style>
+            :root {
+                --blue: #2563eb;
+                --purple: #9333ea;
+                --cyan: #06b6d4;
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+                font-family: 'Poppins', sans-serif;
+            }
+
+            body {
+                background: #050816;
+                color: white;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+
+            /* Header Match */
+            .header {
+                height: 70px;
+                width: 100%;
+                padding: 0 5%;
+                display: flex;
+                align-items: center;
+                background: rgba(255,255,255,0.04);
+                backdrop-filter: blur(25px);
+                border-bottom: 1px solid rgba(255,255,255,0.08);
+                position: fixed;
+                top: 0;
+                z-index: 100;
+            }
+
+                .header::after {
+                    content: "";
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    height: 2px;
+                    width: 100%;
+                    background: linear-gradient(90deg, var(--blue), var(--purple), var(--cyan));
+                }
+
+            .logo {
+                font-size: 22px;
+                font-weight: 700;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+                .logo i {
+                    color: #60a5fa;
+                }
+
+            /* Content Layout */
+            .page-wrapper {
+                display: flex;
+                flex: 1;
+                margin-top: 70px;
+            }
+
+            .blob {
+                position: fixed;
+                border-radius: 50%;
+                filter: blur(120px);
+                opacity: .4;
+                z-index: -1;
+            }
+
+            .b1 {
+                width: 400px;
+                height: 400px;
+                background: var(--blue);
+                top: -100px;
+                left: -100px;
+            }
+
+            .b2 {
+                width: 400px;
+                height: 400px;
+                background: var(--purple);
+                bottom: -100px;
+                right: -100px;
+            }
+
+            .sidebar {
+                width: 300px;
+                background: rgba(255,255,255,0.03);
+                backdrop-filter: blur(25px);
+                border-right: 1px solid rgba(255,255,255,0.05);
+                padding: 20px;
+                overflow-y: auto;
+            }
+
+            .case-item {
+                padding: 15px;
+                margin-bottom: 10px;
+                border-radius: 12px;
+                background: rgba(255,255,255,0.05);
+                border: 1px solid rgba(255,255,255,0.1);
+                cursor: pointer;
+                transition: .3s;
+            }
+
+                .case-item:hover {
+                    background: rgba(255,255,255,0.08);
+                    border-color: var(--blue);
+                }
+
+            .main-chat {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                padding: 30px;
+            }
+
+            .chat-area {
+                flex: 1;
+                overflow-y: auto;
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+                padding-right: 10px;
+            }
+
+            .msg {
+                padding: 12px 18px;
+                border-radius: 15px;
+                max-width: 60%;
+                font-size: 14px;
+            }
+
+                .msg.officer {
+                    background: linear-gradient(90deg, var(--blue), var(--purple));
+                    align-self: flex-end;
+                }
+
+                .msg.citizen {
+                    background: rgba(255,255,255,0.05);
+                    align-self: flex-start;
+                    border: 1px solid rgba(255,255,255,0.1);
+                }
+
+            .input-box {
+                background: rgba(255,255,255,0.05);
+                border: 1px solid rgba(255,255,255,0.1);
+                padding: 15px;
+                border-radius: 10px;
+                color: white;
+                flex: 1;
+            }
+
+            .send-btn {
+                background: var(--blue);
+                border: none;
+                padding: 0 25px;
+                border-radius: 10px;
+                color: white;
+                cursor: pointer;
+            }
+    </style>
+</head>
+<body>
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+
+    <div class="header">
+        <div class="logo"><i class="fa-solid fa-shield-halved"></i> CrimeVision Officer</div>
+    </div>
+
+    <div class="page-wrapper">
+        <div class="sidebar">
+            <h3 style="margin-bottom:20px;">Active Investigations</h3>
+            @foreach (var c in ViewBag.Complaints)
+            {
+                <div class="case-item" onclick="window.location.href='/Communication/ChatList?complaintId=@c.ID'">
+                    <h4 style="font-size:14px;">Case #@c.ID</h4>
+                    <p style="font-size:12px; color:var(--cyan);">@c.CrimeType</p>
+                </div>
+            }
+            <a href="@Url.Action("Dashboard", "OfficerPortal")" style="display:block; margin-top:30px; color:var(--blue); text-decoration:none; font-weight:600;">
+                <i class="fa fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <div class="main-chat">
+            <h3 style="margin-bottom:20px;">Discussion Log - Case #@ViewBag.SelectedId</h3>
+            <div class="chat-area">
+                @if (ViewBag.Messages != null)
+                {
+                    foreach (var m in ViewBag.Messages)
+                    {
+                        <div class="msg @(m.SenderType.ToString().ToLower())">
+                            @m.MessageContent
+                        </div>
+                    }
+                }
+            </div>
+
+            @if (ViewBag.SelectedId != 0)
+            {
+                <form asp-action="SendMessage" method="post" style="display:flex; gap:10px;">
+                    <input type="hidden" name="complaintId" value="@ViewBag.SelectedId" />
+                    <input type="text" name="message" class="input-box" required placeholder="Type your response...">
+                    <button type="submit" class="send-btn"><i class="fa fa-paper-plane"></i></button>
+                </form>
+            }
+        </div>
+    </div>
+</body>
+</html>
