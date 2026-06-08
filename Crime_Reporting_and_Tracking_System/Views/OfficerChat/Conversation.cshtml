@@ -1,0 +1,176 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Case Discussion - CrimeVision</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
+    <style>
+            body {
+                background: #050816;
+                color: white;
+                font-family: 'Poppins', sans-serif;
+                display: flex;
+                height: 100vh;
+                overflow: hidden;
+            }
+
+            .sidebar {
+                width: 300px;
+                background: rgba(255,255,255,0.03);
+                border-right: 1px solid rgba(255,255,255,0.1);
+                padding: 20px;
+                overflow-y: auto;
+            }
+
+            .chat-area {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                background: rgba(0,0,0,0.2);
+            }
+
+            .chat-header {
+                padding: 20px;
+                background: rgba(255,255,255,0.05);
+                border-bottom: 1px solid rgba(255,255,255,0.1);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .messages {
+                flex: 1;
+                padding: 20px;
+                overflow-y: auto;
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .msg {
+                padding: 10px 15px;
+                border-radius: 10px;
+                max-width: 70%;
+                word-wrap: break-word;
+            }
+
+            .msg-left {
+                background: #1e293b;
+                align-self: flex-start;
+                color: #e2e8f0;
+            }
+
+            .msg-right {
+                background: #2563eb;
+                align-self: flex-end;
+                color: white;
+            }
+
+            .input-area {
+                padding: 20px;
+                background: rgba(255,255,255,0.05);
+                display: flex;
+                gap: 10px;
+            }
+
+            input[type="text"] {
+                flex: 1;
+                padding: 12px;
+                background: #050816;
+                border: 1px solid #374151;
+                color: white;
+                border-radius: 8px;
+                outline: none;
+            }
+
+            .btn-send {
+                background: #2563eb;
+                border: none;
+                color: white;
+                padding: 10px 20px;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: 0.3s;
+            }
+
+                .btn-send:hover {
+                    background: #1d4ed8;
+                }
+
+            .user-card {
+                padding: 15px;
+                margin-bottom: 10px;
+                background: rgba(255,255,255,0.05);
+                border-radius: 10px;
+                text-decoration: none;
+                color: white;
+                display: block;
+                transition: 0.3s;
+            }
+
+                .user-card:hover {
+                    background: rgba(37, 99, 235, 0.2);
+                }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h3>Active Conversations</h3>
+        <hr style="margin: 15px 0; border: 0; border-top: 1px solid #333;" />
+        @foreach (var chat in ViewBag.ChatList)
+        {
+            <a href="@Url.Action("Conversation", "OfficerChat", new { citizenPhone = chat.CitizenPhone })" class="user-card">
+                <strong>@chat.CitizenName</strong><br />
+                <small style="color: #60a5fa;">@chat.CitizenPhone</small>
+            </a>
+        }
+    </div>
+
+    <div class="chat-area">
+        @if (ViewBag.ActiveChatId != null)
+        {
+            <div class="chat-header">
+                <h4><i class="fa-solid fa-user-shield"></i> @ViewBag.SelectedCitizenName</h4>
+                <span style="font-size: 12px;"><i class="fa-solid fa-circle" style="color: #22c55e; font-size: 8px;"></i> Active Session</span>
+            </div>
+
+            <div class="messages" id="msgContainer">
+                @foreach (var msg in Model)
+                {
+                    <div class="msg @(msg.SenderType == "Officer" ? "msg-right" : "msg-left")">
+                        @msg.MessageText
+                        <div style="font-size: 9px; opacity: 0.6; margin-top: 4px; text-align: right;">@msg.Timestamp.ToString("hh:mm tt")</div>
+                    </div>
+                }
+            </div>
+
+            <div class="input-area">
+                <form asp-action="SendOfficerMessage" method="post" style="display: flex; width: 100%; gap: 10px;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="chatId" value="@ViewBag.ActiveChatId" />
+                    <input type="hidden" name="citizenPhone" value="@ViewBag.SelectedCitizenPhone" />
+                    <input type="text" name="messageText" placeholder="Write a response..." required autocomplete="off" />
+                    <button type="submit" class="btn-send"><i class="fa-solid fa-paper-plane"></i></button>
+                </form>
+            </div>
+        }
+        else
+        {
+            <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; color: #4b5563;">
+                <i class="fa-solid fa-comments" style="font-size: 50px; margin-bottom: 20px;"></i>
+                <p>Select a case to begin communication</p>
+            </div>
+        }
+    </div>
+
+    <script>
+            // Auto-scroll to bottom on load
+            var container = document.getElementById("msgContainer");
+            if(container) { container.scrollTop = container.scrollHeight; }
+    </script>
+</body>
+</html>

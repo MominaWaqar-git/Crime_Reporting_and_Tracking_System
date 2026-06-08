@@ -203,6 +203,9 @@
                 <a asp-controller="CriminalRecord" asp-action="Index"><i class="fa-solid fa-user-secret"></i> Criminal Records</a>
                 <!-- Chat Discussion Link -->
                 <a asp-controller="Communication" asp-action="ChatList"><i class="fa-solid fa-comments"></i> Case Discussions</a>
+                <a asp-controller="Chat" asp-action="OfficerChat" asp-route-officerPhone="YOUR_OFFICER_PHONE_HERE">
+                    <i class="fa-solid fa-user-shield"></i> Officers Chat
+                </a>
                 <a asp-controller="OfficerPortal" asp-action="Logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
             </div>
         </div>
@@ -263,5 +266,6 @@
     <script>
             function showModal(id) { document.getElementById('complaintId').value = id; document.getElementById('statusModal').style.display = 'flex'; }
             function closeModal() { document.getElementById('statusModal').style.display = 'none'; }
-    </script></body>
+    </script>
+</body>
 </html>

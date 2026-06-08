@@ -338,5 +338,70 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
             }
             return RedirectToAction("CitizenPortal", new { phone = citizenPhone });
         }
+
+        // 1. Method ka naam "OfficerPortal" se "OfficerChat" kar diya
+        [HttpGet]
+        public IActionResult OfficerChat(string officerPhone)
+        {
+            // 1. Phone number check
+            if (string.IsNullOrEmpty(officerPhone))
+            {
+                return Content("Error: Phone number missing hai!");
+            }
+
+            // 2. Database se Officer dhundo
+            var officer = _context.Officers.FirstOrDefault(o => o.PhoneNumber == officerPhone);
+            if (officer == null)
+            {
+                return Content("Database mein ye phone number nahi mila: " + officerPhone);
+            }
+
+            // 3. Messages ki list
+            var msgs = new List<ChatMessages>();
+
+            // 4. Room dhundo (Yahan aap filter laga sakte ho agar room assigned hai)
+            var room = _context.GroupChats
+                .Where(g => g.IsDeleted == false)
+                .FirstOrDefault();
+
+            if (room != null)
+            {
+                ViewBag.ActiveChatId = room.ChatId;
+                msgs = _context.ChatMessages
+                    .Where(m => m.ChatId == room.ChatId && m.IsDeleted == false)
+                    .OrderBy(m => m.Timestamp)
+                    .ToList();
+            }
+
+            // 5. Data View ko bhejo
+            ViewBag.OfficerName = officer.Name;
+            ViewBag.OfficerPhone = officer.PhoneNumber;
+
+            return View("OfficerChat", msgs);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult SendOfficerMessage(int chatId, string officerPhone, string messageText, string senderName)
+        {
+            if (!string.IsNullOrWhiteSpace(messageText))
+            {
+                var newMsg = new ChatMessages
+                {
+                    ChatId = chatId,
+                    SenderType = "Officer",
+                    SenderName = senderName,
+                    MessageText = messageText.Trim(),
+                    Timestamp = DateTime.Now,
+                    IsDeleted = false,
+                    IsRead = false
+                };
+                _context.ChatMessages.Add(newMsg);
+                _context.SaveChanges();
+            }
+
+            // 3. Redirect action ko bhi update kar diya
+            return RedirectToAction("OfficerChat", new { officerPhone = officerPhone });
+        }
     }
 }

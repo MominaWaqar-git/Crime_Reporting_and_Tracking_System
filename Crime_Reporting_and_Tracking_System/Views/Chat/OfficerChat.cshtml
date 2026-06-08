@@ -1,0 +1,48 @@
+﻿@model IEnumerable<Crime_Reporting_and_Tracking_System.Models.ChatMessages>
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Officer Portal - CrimeVision</title>
+    <!-- Use same CSS links as your ViewChat.cshtml -->
+</head>
+<body style="background: #050816; color: white;">
+
+    <div class="header">
+        <div class="logo"><i class="fa-solid fa-badge-policeman"></i> Officer Portal: @ViewBag.OfficerName</div>
+        <a href="/Home/Index" class="exit-btn">Logout</a>
+    </div>
+
+    <div class="chat-wrapper" style="margin-top: 100px; padding: 20px;">
+        <div class="main-chat-container">
+            <div class="chat-window">
+                <div class="chat-body-messages" id="chatLogsContainer">
+                    @foreach (var msg in Model)
+                    {
+                        string bubbleSide = (msg.SenderType == "Officer") ? "msg-right" : "msg-left";
+                        <div class="message-bubble @bubbleSide">
+                            <div style="font-size: 10px; font-weight:bold;">@msg.SenderName (@msg.SenderType)</div>
+                            <div>@msg.MessageText</div>
+                        </div>
+                    }
+                </div>
+
+                <div class="chat-footer">
+                    <form action="/Chat/SendOfficerMessage" method="post" class="input-group-custom">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="chatId" value="@ViewBag.ActiveChatId" />
+                        <input type="hidden" name="officerPhone" value="@ViewBag.OfficerPhone" />
+                        <input type="hidden" name="senderName" value="@ViewBag.OfficerName" />
+
+                        <input type="text" name="messageText" class="message-input" placeholder="Officer input required..." required />
+                        <button type="submit" class="send-btn">Transmit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
