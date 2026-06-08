@@ -53,11 +53,10 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
 
             List<dynamic> list = new List<dynamic>();
             int t = 0, a = 0, r = 0;
-            string dbPhoneNumber = ""; // Fallback k liye database variable
+            string dbPhoneNumber = "";
 
             using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("CrimeDB")))
             {
-                // Query mein Officers table join kiya taake PhoneNumber mil sake safely
                 string query = @"SELECT C.*, O.PhoneNumber AS OffPhone 
                          FROM Complaints C 
                          INNER JOIN ComplaintAssignments A ON C.ID = A.ComplaintId 
@@ -71,7 +70,6 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                 SqlDataReader reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
-                    // Pehle loop mein hi officer ka phone number nikal ayega
                     if (string.IsNullOrEmpty(dbPhoneNumber))
                     {
                         dbPhoneNumber = reader["OffPhone"]?.ToString();
@@ -89,14 +87,13 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                 }
             }
 
-            // 🔥 DUAL CHECK SAFETY: Agar Session khali hai to Direct Database wala phone number use hoga
             string finalPhone = HttpContext.Session.GetString("PhoneNumber");
             if (string.IsNullOrEmpty(finalPhone))
             {
                 finalPhone = dbPhoneNumber;
             }
 
-            ViewBag.OfficerPhone = finalPhone; // Ab ye kabhi null nahi hoga!
+            ViewBag.OfficerPhone = finalPhone;
             ViewBag.OfficerName = HttpContext.Session.GetString("OfficerName");
             ViewBag.OfficerRank = HttpContext.Session.GetString("OfficerRank");
             ViewBag.OfficerImage = HttpContext.Session.GetString("OfficerImage");
@@ -164,6 +161,25 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                 TempData["Success"] = "Evidence uploaded successfully!";
             }
             return RedirectToAction("CaseDetails", new { id = complaintId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult UpdateStatus(int complaintId, string newStatus)
+        {
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("OfficerId")))
+                return RedirectToAction("Login");
+
+            using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("CrimeDB")))
+            {
+                string q = "UPDATE Complaints SET Status = @status WHERE ID = @id";
+                SqlCommand cmd = new SqlCommand(q, con);
+                cmd.Parameters.AddWithValue("@status", newStatus);
+                cmd.Parameters.AddWithValue("@id", complaintId);
+                con.Open();
+                cmd.ExecuteNonQuery();
+            }
+            return RedirectToAction("Dashboard");
         }
         #endregion
 

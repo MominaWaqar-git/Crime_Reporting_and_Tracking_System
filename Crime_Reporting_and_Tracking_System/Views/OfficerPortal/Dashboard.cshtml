@@ -3,18 +3,6 @@
     string backupPhone = ViewBag.OfficerPhone?.ToString() ?? "";
 }
 
-@if (Model != null && !string.IsNullOrEmpty(Model.PhoneNumber))
-{
-    <a href="/Chat/OfficerPortalDesk?phone=@Model.PhoneNumber" class="btn btn-primary">
-        <i class="fa-solid fa-comments"></i> Secure Communications Desk
-    </a>
-}
-else
-{
-    <button class="btn btn-secondary" disabled title="Model or Phone property is null!">
-        <i class="fa-solid fa-comments"></i> Chat Unavailable (Data Null)
-    </button>
-}
 <!DOCTYPE html>
 <html>
 <head>
@@ -42,12 +30,40 @@ else
                 min-height: 100vh;
                 display: flex;
                 flex-direction: column;
+                overflow-x: hidden;
             }
 
-            /* Header with Gradient Line */
+            /* BLOB EFFECT */
+            .blob {
+                position: fixed;
+                border-radius: 50%;
+                filter: blur(120px);
+                opacity: .4;
+                z-index: -1;
+            }
+
+            .b1 {
+                width: 400px;
+                height: 400px;
+                background: var(--blue);
+                top: -100px;
+                left: -100px;
+            }
+
+            .b2 {
+                width: 400px;
+                height: 400px;
+                background: var(--purple);
+                bottom: -100px;
+                right: -100px;
+            }
+
+            /* HEADER */
             .header {
-                height: 70px;
+                position: fixed;
+                top: 0;
                 width: 100%;
+                height: 70px;
                 padding: 0 5%;
                 display: flex;
                 align-items: center;
@@ -55,8 +71,6 @@ else
                 background: rgba(255,255,255,0.04);
                 backdrop-filter: blur(25px);
                 border-bottom: 1px solid rgba(255,255,255,0.08);
-                position: fixed;
-                top: 0;
                 z-index: 100;
             }
 
@@ -83,6 +97,7 @@ else
                     color: #60a5fa;
                 }
 
+            /* LAYOUT */
             .page-wrapper {
                 display: flex;
                 flex: 1;
@@ -104,37 +119,42 @@ else
                 padding-bottom: 80px;
             }
 
-            .footer {
-                padding: 15px;
-                text-align: center;
-                background: rgba(255,255,255,0.03);
-                border-top: 1px solid rgba(255,255,255,0.05);
-                margin-top: auto;
+            /* SIDEBAR HOVER EFFECT */
+            .menu a {
+                position: relative;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 12px;
+                margin: 10px 0;
+                color: white;
+                text-decoration: none;
+                border-radius: 12px;
+                transition: .3s;
+                overflow: hidden;
             }
 
-            .blob {
-                position: fixed;
-                border-radius: 50%;
-                filter: blur(120px);
-                opacity: .4;
-                z-index: -1;
-            }
+                .menu a::before {
+                    content: "";
+                    position: absolute;
+                    inset: 0;
+                    background: linear-gradient(90deg, rgba(37,99,235,0.25), rgba(147,51,234,0.25));
+                    opacity: 0;
+                    transition: .3s;
+                }
 
-            .b1 {
-                width: 400px;
-                height: 400px;
-                background: var(--blue);
-                top: -100px;
-                left: -100px;
-            }
+                .menu a:hover::before {
+                    opacity: 1;
+                }
 
-            .b2 {
-                width: 400px;
-                height: 400px;
-                background: var(--purple);
-                bottom: -100px;
-                right: -100px;
-            }
+                .menu a:hover {
+                    transform: translateX(8px);
+                    background: rgba(255,255,255,0.06);
+                }
+
+                .menu a.active {
+                    background: linear-gradient(90deg, var(--blue), var(--purple));
+                }
 
             .avatar {
                 width: 70px;
@@ -143,20 +163,6 @@ else
                 border: 3px solid var(--blue);
                 margin-bottom: 10px;
             }
-
-            .menu a {
-                display: block;
-                padding: 12px;
-                margin: 5px 0;
-                color: white;
-                text-decoration: none;
-                border-radius: 8px;
-                transition: .3s;
-            }
-
-                .menu a.active {
-                    background: linear-gradient(90deg, var(--blue), var(--purple));
-                }
 
             .cards {
                 display: grid;
@@ -194,6 +200,14 @@ else
                 border-radius: 5px;
                 cursor: pointer;
             }
+
+            .footer {
+                padding: 15px;
+                text-align: center;
+                background: rgba(255,255,255,0.03);
+                border-top: 1px solid rgba(255,255,255,0.05);
+                margin-top: auto;
+            }
     </style>
 </head>
 <body>
@@ -213,26 +227,21 @@ else
             </div>
             <div class="menu">
                 <a class="active" href="#"><i class="fa-solid fa-gauge"></i> Dashboard</a>
-                <!-- Criminal Record Added Here -->
                 <a asp-controller="CriminalRecord" asp-action="Index"><i class="fa-solid fa-user-secret"></i> Criminal Records</a>
-                <!-- Chat Discussion Link -->
-                <a asp-controller="Communication" asp-action="ChatList"><i class="fa-solid fa-comments"></i> Case Discussions</a>
-
 
                 @if (!string.IsNullOrEmpty(backupPhone))
                 {
-                    <a href="/Chat/OfficerPortalDesk?phone=@backupPhone" class="btn btn-primary" style="background:#2563eb; color:white; margin-top:10px; text-align:center; font-weight:500; display:block; padding:12px; border-radius:8px; text-decoration:none;">
+                    <a href="/Chat/OfficerPortalDesk?phone=@backupPhone">
                         <i class="fa-solid fa-comments"></i> Secure Communications
                     </a>
                 }
                 else
                 {
-                    <button class="btn btn-secondary" disabled style="width:100%; margin-top:10px; background:#374151; color:#9ca3af; border:none; padding:12px; border-radius:8px; cursor:not-allowed;" title="Backend se phone number nahi mila!">
-                        <i class="fa-solid fa-lock"></i> Chat Locked (Null)
-                    </button>
+                    <a style="cursor: not-allowed; opacity: 0.6;">
+                        <i class="fa-solid fa-lock"></i> Secure Communications
+                    </a>
                 }
-
-                    <a asp-controller="OfficerPortal" asp-action="Logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                <a asp-controller="OfficerPortal" asp-action="Logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
             </div>
         </div>
 
@@ -245,7 +254,7 @@ else
 
             <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px;">
                 <h3>Assigned Crime Reports</h3>
-                <table style="margin-top:15px;">
+                <table>
                     <thead><tr><th>ID</th><th>Crime</th><th>Citizen</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
                     <tbody>
                         @foreach (var item in ViewBag.Complaints)
@@ -275,7 +284,7 @@ else
         <div style="background:#111827; padding:30px; border-radius:15px; width:300px; border:1px solid var(--blue);">
             <h4 style="margin-bottom:15px;">Update Status</h4>
             <form asp-controller="OfficerPortal" asp-action="UpdateStatus" method="post">
-                <input type="hidden" name="complaintId" id="complaintId" />
+                @Html.AntiForgeryToken() <input type="hidden" name="complaintId" id="complaintId" />
                 <select name="newStatus" style="width:100%; padding:10px; background:#050816; color:white; border:1px solid #374151; border-radius:5px;">
                     <option value="Pending">Pending</option>
                     <option value="In Progress">In Progress</option>
@@ -290,8 +299,13 @@ else
     </div>
 
     <script>
-            function showModal(id) { document.getElementById('complaintId').value = id; document.getElementById('statusModal').style.display = 'flex'; }
-            function closeModal() { document.getElementById('statusModal').style.display = 'none'; }
+            function showModal(id) {
+                document.getElementById('complaintId').value = id;
+                document.getElementById('statusModal').style.display = 'flex';
+            }
+            function closeModal() {
+                document.getElementById('statusModal').style.display = 'none';
+            }
     </script>
 </body>
 </html>
