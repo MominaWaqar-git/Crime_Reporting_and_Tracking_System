@@ -1,5 +1,19 @@
 ﻿@{
     Layout = null;
+    string backupPhone = ViewBag.OfficerPhone?.ToString() ?? "";
+}
+
+@if (Model != null && !string.IsNullOrEmpty(Model.PhoneNumber))
+{
+    <a href="/Chat/OfficerPortalDesk?phone=@Model.PhoneNumber" class="btn btn-primary">
+        <i class="fa-solid fa-comments"></i> Secure Communications Desk
+    </a>
+}
+else
+{
+    <button class="btn btn-secondary" disabled title="Model or Phone property is null!">
+        <i class="fa-solid fa-comments"></i> Chat Unavailable (Data Null)
+    </button>
 }
 <!DOCTYPE html>
 <html>
@@ -203,10 +217,22 @@
                 <a asp-controller="CriminalRecord" asp-action="Index"><i class="fa-solid fa-user-secret"></i> Criminal Records</a>
                 <!-- Chat Discussion Link -->
                 <a asp-controller="Communication" asp-action="ChatList"><i class="fa-solid fa-comments"></i> Case Discussions</a>
-                <a asp-controller="Chat" asp-action="OfficerChat" asp-route-officerPhone="YOUR_OFFICER_PHONE_HERE">
-                    <i class="fa-solid fa-user-shield"></i> Officers Chat
-                </a>
-                <a asp-controller="OfficerPortal" asp-action="Logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+
+
+                @if (!string.IsNullOrEmpty(backupPhone))
+                {
+                    <a href="/Chat/OfficerPortalDesk?phone=@backupPhone" class="btn btn-primary" style="background:#2563eb; color:white; margin-top:10px; text-align:center; font-weight:500; display:block; padding:12px; border-radius:8px; text-decoration:none;">
+                        <i class="fa-solid fa-comments"></i> Secure Communications
+                    </a>
+                }
+                else
+                {
+                    <button class="btn btn-secondary" disabled style="width:100%; margin-top:10px; background:#374151; color:#9ca3af; border:none; padding:12px; border-radius:8px; cursor:not-allowed;" title="Backend se phone number nahi mila!">
+                        <i class="fa-solid fa-lock"></i> Chat Locked (Null)
+                    </button>
+                }
+
+                    <a asp-controller="OfficerPortal" asp-action="Logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
             </div>
         </div>
 

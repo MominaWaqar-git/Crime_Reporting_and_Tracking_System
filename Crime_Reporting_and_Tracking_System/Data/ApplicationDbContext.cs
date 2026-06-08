@@ -21,6 +21,8 @@ namespace Crime_Reporting_and_Tracking_System.Data
         public DbSet<User> Users { get; set; }
         public DbSet<ChatMessages> ChatMessages { get; set; }
 
+        public DbSet<ComplaintAssignment> ComplaintAssignments { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

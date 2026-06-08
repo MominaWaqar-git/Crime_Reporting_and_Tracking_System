@@ -14,338 +14,378 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 
     <style>
-            :root {
-                --blue: #2563eb;
-                --purple: #9333ea;
+        :root {
+            --blue: #2563eb;
+            --purple: #9333ea;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #050816;
+            color: white;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: .6;
+            z-index: 0;
+        }
+
+        .b1 {
+            width: 450px;
+            height: 450px;
+            background: var(--blue);
+            top: -120px;
+            left: -120px;
+        }
+
+        .b2 {
+            width: 450px;
+            height: 450px;
+            background: var(--purple);
+            bottom: -120px;
+            right: -120px;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 10;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+            .logo i {
+                color: #60a5fa;
             }
 
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-                font-family: 'Poppins', sans-serif;
-            }
+        .exit-btn {
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+            transition: 0.3s;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+        }
 
-            body {
-                min-height: 100vh;
-                background: #050816;
+            .exit-btn:hover {
+                transform: translateY(-2px);
                 color: white;
-                overflow-x: hidden;
-                display: flex;
-                flex-direction: column;
             }
 
-            .blob {
-                position: fixed;
-                border-radius: 50%;
-                filter: blur(120px);
-                opacity: .6;
-                z-index: 0;
+        .chat-wrapper {
+            flex: 1;
+            margin-top: 85px;
+            padding: 20px 5%;
+            z-index: 2;
+        }
+
+        .main-chat-container {
+            display: flex;
+            height: 78vh;
+            background: rgba(24, 21, 44, 0.6);
+            backdrop-filter: blur(15px);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .chat-sidebar {
+            width: 340px;
+            background: rgba(13, 11, 26, 0.9);
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 20px 20px 10px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #a29bfe;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .search-box-container {
+            padding: 0 20px 15px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .sidebar-search {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 8px 12px 8px 35px;
+            color: white;
+            font-size: 13px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+            .sidebar-search:focus {
+                border-color: #6c5ce7;
+                box-shadow: 0 0 10px rgba(108, 92, 231, 0.3);
             }
 
-            .b1 {
-                width: 450px;
-                height: 450px;
-                background: var(--blue);
-                top: -120px;
-                left: -120px;
-            }
+        .search-icon-wrapper {
+            position: relative;
+        }
 
-            .b2 {
-                width: 450px;
-                height: 450px;
-                background: var(--purple);
-                bottom: -120px;
-                right: -120px;
-            }
-
-            .header {
-                position: fixed;
-                top: 0;
-                width: 100%;
-                padding: 15px 5%;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                background: rgba(255, 255, 255, 0.05);
-                backdrop-filter: blur(20px);
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                z-index: 10;
-            }
-
-            .logo {
-                font-size: 22px;
-                font-weight: 700;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
-
-                .logo i {
-                    color: #60a5fa;
-                }
-
-            .exit-btn {
-                background: linear-gradient(135deg, #ef4444, #b91c1c);
-                color: white;
-                border: none;
-                padding: 8px 16px;
-                border-radius: 8px;
-                text-decoration: none;
-                font-weight: 500;
-                font-size: 14px;
-                transition: 0.3s;
-                box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
-            }
-
-                .exit-btn:hover {
-                    transform: translateY(-2px);
-                    color: white;
-                }
-
-            .chat-wrapper {
-                flex: 1;
-                margin-top: 85px;
-                padding: 20px 5%;
-                z-index: 2;
-            }
-
-            .main-chat-container {
-                display: flex;
-                height: 78vh;
-                background: rgba(24, 21, 44, 0.6);
-                backdrop-filter: blur(15px);
-                border-radius: 16px;
-                overflow: hidden;
-                border: 1px solid rgba(255, 255, 255, 0.08);
-            }
-
-            .chat-sidebar {
-                width: 340px;
-                background: rgba(13, 11, 26, 0.9);
-                border-right: 1px solid rgba(255, 255, 255, 0.08);
-                display: flex;
-                flex-direction: column;
-            }
-
-            .sidebar-header {
-                padding: 20px 20px 10px 20px;
-                font-size: 16px;
-                font-weight: 600;
-                color: #a29bfe;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-
-            .search-box-container {
-                padding: 0 20px 15px 20px;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            }
-
-            .sidebar-search {
-                width: 100%;
-                background: rgba(255,255,255,0.05);
-                border: 1px solid rgba(255,255,255,0.1);
-                border-radius: 8px;
-                padding: 8px 12px 8px 35px;
-                color: white;
+            .search-icon-wrapper i {
+                position: absolute;
+                left: 12px;
+                top: 12px;
+                color: rgba(255,255,255,0.4);
                 font-size: 13px;
-                outline: none;
-                transition: 0.3s;
             }
 
-                .sidebar-search:focus {
-                    border-color: #6c5ce7;
-                    box-shadow: 0 0 10px rgba(108, 92, 231, 0.3);
-                }
+        .add-chat-icon-btn {
+            background: rgba(108, 92, 231, 0.2);
+            color: #a29bfe;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
 
-            .search-icon-wrapper {
-                position: relative;
-            }
-
-                .search-icon-wrapper i {
-                    position: absolute;
-                    left: 12px;
-                    top: 12px;
-                    color: rgba(255,255,255,0.4);
-                    font-size: 13px;
-                }
-
-            .add-chat-icon-btn {
-                background: rgba(108, 92, 231, 0.2);
-                color: #a29bfe;
-                border: none;
-                width: 35px;
-                height: 35px;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: all 0.3s;
-            }
-
-                .add-chat-icon-btn:hover {
-                    background: #6c5ce7;
-                    color: white;
-                }
-
-            .chat-users-list {
-                overflow-y: auto;
-                flex: 1;
-            }
-
-            .user-item {
-                display: flex;
-                align-items: center;
-                padding: 15px;
-                gap: 12px;
-                color: white;
-                text-decoration: none;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-            }
-
-                .user-item:hover, .user-item.active-session {
-                    background: rgba(108, 92, 231, 0.15);
-                }
-
-            .avatar-image {
-                width: 42px;
-                height: 42px;
-                border-radius: 50%;
-                object-fit: cover;
-                border: 1px solid #6c5ce7;
-                background: #1e1a3a;
-            }
-
-            .chat-window {
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-                background: rgba(21, 18, 41, 0.4);
-            }
-
-            .chat-header {
-                padding: 15px 20px;
-                background: rgba(24, 21, 44, 0.9);
-                border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            }
-
-            .chat-body-messages {
-                flex: 1;
-                padding: 20px;
-                overflow-y: auto;
-                display: flex;
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .message-bubble {
-                max-width: 60%;
-                padding: 10px 14px;
-                border-radius: 12px;
-                color: white;
-                font-size: 14px;
-                position: relative;
-            }
-
-            .msg-right {
-                align-self: flex-end;
-                background: linear-gradient(135deg, #6c5ce7, #8e7cfc);
-                border-bottom-right-radius: 2px;
-            }
-
-            .msg-left {
-                align-self: flex-start;
-                background: rgba(255, 255, 255, 0.06);
-                border: 1px solid rgba(255, 255, 255, 0.05);
-                border-bottom-left-radius: 2px;
-            }
-
-            .msg-system {
-                align-self: center;
-                background: rgba(241, 196, 15, 0.15);
-                border: 1px dashed #f1c40f;
-                color: #f1c40f;
-                text-align: center;
-                font-size: 12px;
-            }
-
-            .delete-btn {
-                background: none;
-                border: none;
-                color: #ff7675;
-                cursor: pointer;
-                font-size: 11px;
-                opacity: 0;
-                transition: opacity 0.2s;
-                padding: 0;
-                margin-left: 8px;
-            }
-
-            .message-bubble:hover .delete-btn {
-                opacity: 1;
-            }
-
-            .msg-footer {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                font-size: 10px;
-                opacity: 0.6;
-                margin-top: 5px;
-            }
-
-            .chat-footer {
-                padding: 15px 20px;
-                background: rgba(24, 21, 44, 0.9);
-                border-top: 1px solid rgba(255, 255, 255, 0.08);
-            }
-
-            .input-group-custom {
-                display: flex;
-                gap: 10px;
-            }
-
-            .message-input {
-                flex: 1;
-                background: #131026;
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 8px;
-                padding: 12px;
-                color: white;
-                outline: none;
-            }
-
-            .send-btn {
+            .add-chat-icon-btn:hover {
                 background: #6c5ce7;
                 color: white;
-                border: none;
-                padding: 0 20px;
-                border-radius: 8px;
             }
 
-            .dark-modal {
-                background-color: #131026 !important;
+        .chat-users-list {
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .user-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            gap: 12px;
+            color: white;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+            .user-item:hover, .user-item.active-session {
+                background: rgba(108, 92, 231, 0.15);
+            }
+
+        .avatar-image {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid #6c5ce7;
+            background: #1e1a3a;
+        }
+
+        .chat-window {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: rgba(21, 18, 41, 0.4);
+        }
+
+        .chat-header {
+            padding: 15px 20px;
+            background: rgba(24, 21, 44, 0.9);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .chat-body-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message-bubble {
+            max-width: 60%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            color: white;
+            font-size: 14px;
+            position: relative;
+        }
+
+        .msg-right {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #6c5ce7, #8e7cfc);
+            border-bottom-right-radius: 2px;
+        }
+
+        .msg-left {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom-left-radius: 2px;
+        }
+
+        .msg-system {
+            align-self: center;
+            background: rgba(241, 196, 15, 0.15);
+            border: 1px dashed #f1c40f;
+            color: #f1c40f;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #ff7675;
+            cursor: pointer;
+            font-size: 11px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            padding: 0;
+            margin-left: 8px;
+        }
+
+        .message-bubble:hover .delete-btn {
+            opacity: 1;
+        }
+
+        .msg-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+            opacity: 0.6;
+            margin-top: 5px;
+        }
+
+        .chat-footer {
+            padding: 15px 20px;
+            background: rgba(24, 21, 44, 0.9);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .input-group-custom {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .message-input {
+            flex: 1;
+            background: #131026;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 12px;
+            color: white;
+            outline: none;
+        }
+
+        .attach-btn {
+            background: rgba(255, 255, 255, 0.05);
+            color: #a29bfe;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+            .attach-btn:hover {
+                background: rgba(108, 92, 231, 0.2);
+                color: white;
+            }
+
+            .attach-btn.has-file {
+                background: #2ed573 !important;
                 color: white !important;
-                border: 1px solid #6c5ce7;
+                border-color: #2ed573;
             }
 
-                .dark-modal input, .dark-modal select {
-                    background-color: #0d0b1a !important;
-                    border: 1px solid rgba(255,255,255,0.1) !important;
-                    color: white !important;
-                }
+        .chat-image-attachment {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            margin-top: 5px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
 
-            .system-footer {
-                width: 100%;
-                text-align: center;
-                padding: 15px;
-                background: rgba(255, 255, 255, 0.04);
-                border-top: 1px solid rgba(255, 255, 255, 0.08);
-                font-size: 13px;
-                margin-top: auto;
+            .chat-image-attachment:hover {
+                transform: scale(1.02);
             }
+
+        .send-btn {
+            background: #6c5ce7;
+            color: white;
+            border: none;
+            padding: 0 20px;
+            height: 45px;
+            border-radius: 8px;
+        }
+
+        .dark-modal {
+            background-color: #131026 !important;
+            color: white !important;
+            border: 1px solid #6c5ce7;
+        }
+
+            .dark-modal input, .dark-modal select {
+                background-color: #0d0b1a !important;
+                border: 1px solid rgba(255,255,255,0.1) !important;
+                color: white !important;
+            }
+
+        .system-footer {
+            width: 100%;
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.04);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 13px;
+            margin-top: auto;
+        }
     </style>
 </head>
 <body>
@@ -417,20 +457,47 @@
                             foreach (var msg in Model)
                             {
                                 string bubbleSide = "msg-left";
-                                if (msg.SenderType == "Admin") { bubbleSide = "msg-right"; }
-                                else if (msg.SenderType == "System") { bubbleSide = "msg-system"; }
+                                bool isSystem = string.Equals(msg.SenderType, "System", StringComparison.OrdinalIgnoreCase);
+
+                                if (string.Equals(msg.SenderType, "Admin", StringComparison.OrdinalIgnoreCase)) { bubbleSide = "msg-right"; }
+                                else if (isSystem) { bubbleSide = "msg-system"; }
 
                                 <div class="message-bubble @bubbleSide">
-                                    @if (msg.SenderType != "System")
+                                    @if (!isSystem)
                                     {
-                                        <div style="font-size: 11px; font-weight: bold; opacity: 0.8; margin-bottom: 4px;">@msg.SenderName (@msg.SenderType)</div>
+                                        <div style="font-size: 11px; font-weight: bold; opacity: 0.8; margin-bottom: 4px;">
+                                            @msg.SenderName <span style="font-weight: 300; opacity: 0.7;">(@msg.SenderType)</span>
+                                        </div>
                                     }
-                                    <div>@msg.MessageText</div>
+
+                                    <div class="msg-content-text">
+                                        @if (isSystem && msg.MessageText != null)
+                                        {
+                                            @Html.Raw(msg.MessageText.Replace("*", "").Replace("\n", "<br/>"))
+                                        }
+                                        else if (msg.MessageText != null)
+                                        {
+                                            // 🔥 FIXED FOR RAZOR COMPILER: Casing handling for (.PNG, .JPG etc) inside C# block
+                                            var textLower = msg.MessageText.Trim().ToLower();
+                                            var isImgPath = (textLower.StartsWith("/uploads/") || textLower.StartsWith("http://") || textLower.StartsWith("https://")) &&
+                                            (textLower.EndsWith(".jpg") || textLower.EndsWith(".jpeg") || textLower.EndsWith(".png") || textLower.EndsWith(".gif"));
+
+                                            if (isImgPath)
+                                            {
+                                                <img src="@msg.MessageText" class="chat-image-attachment" alt="Transmission Attachment" onclick="zoomImage(this.src)" />
+                                            }
+                                            else
+                                            {
+                                                @msg.MessageText
+                                            }
+                                        }
+                                    </div>
+
                                     <div class="msg-footer">
                                         <span>@msg.Timestamp.ToString("hh:mm tt")</span>
-                                        @if (msg.SenderType == "Admin")
+                                        @if (string.Equals(msg.SenderType, "Admin", StringComparison.OrdinalIgnoreCase))
                                         {
-                                            <form action="/Chat/DeleteMessage" method="post" style="display:inline;">
+                                            <form action="/Chat/DeleteMessage" method="post" style="display:inline;" onsubmit="deleteMessageAJAX(event, this)">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="messageId" value="@msg.MessageId" />
                                                 <input type="hidden" name="citizenPhone" value="@currentCitizenPhone" />
@@ -441,17 +508,29 @@
                                 </div>
                             }
                         }
+                        else
+                        {
+                            <div id="noMessagesPlaceholder" style="text-align: center; color: rgba(255,255,255,0.3); margin: auto 0; font-size: 13px;">
+                                <i class="fa-solid fa-folder-open d-block mb-2" style="font-size: 30px;"></i>
+                                No transmission logs found in this secure room.
+                            </div>
+                        }
                     </div>
 
                     <div class="chat-footer">
-                        <form action="/Chat/SendMessage" method="post" class="input-group-custom">
+                        <form action="/Chat/SendMessage" method="post" class="input-group-custom" id="sendMessageForm" enctype="multipart/form-data" onsubmit="submitMessageAJAX(event)">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="chatId" value="@ViewBag.ActiveChatId" />
                             <input type="hidden" name="citizenPhone" value="@currentCitizenPhone" />
                             <input type="hidden" name="senderType" value="Admin" />
                             <input type="hidden" name="senderName" value="Head Desk Officer" />
 
-                            <input type="text" name="messageText" class="message-input" placeholder="Type transmission message..." required autocomplete="off" />
+                            <input type="file" name="imageFile" id="imageFileInput" accept="image/*" style="display:none;" onchange="handleFileSelect()" />
+                            <button type="button" class="attach-btn" id="attachBtn" onclick="document.getElementById('imageFileInput').click();" title="Attach Evidence Image">
+                                <i class="fa-solid fa-paperclip"></i>
+                            </button>
+
+                            <input type="text" name="messageText" id="messageTextInput" class="message-input" placeholder="Type transmission message..." autocomplete="off" />
                             <button type="submit" class="send-btn btn btn-primary"><i class="fa-solid fa-paper-plane"></i> Send</button>
                         </form>
                     </div>
@@ -478,7 +557,6 @@
                 <form action="/Chat/CreateNewChat" method="post">
                     @Html.AntiForgeryToken()
                     <div class="modal-body">
-
                         <div class="mb-3">
                             <label class="form-label">Target Connection Type</label>
                             <select name="isOfficer" class="form-select" required>
@@ -486,12 +564,10 @@
                                 <option value="true">Police Officer / Investigator (Staff)</option>
                             </select>
                         </div>
-
                         <div class="mb-3">
                             <label class="form-label">Full Name</label>
                             <input type="text" name="personName" class="form-control" placeholder="Enter Full Name" required />
                         </div>
-
                         <div class="mb-3">
                             <label class="form-label">Phone Number</label>
                             <input type="text" name="personPhone" class="form-control" placeholder="E.g., 03001234567" required />
@@ -512,62 +588,202 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        var objDiv = document.getElementById("chatLogsContainer");
-        if(objDiv) { objDiv.scrollTop = objDiv.scrollHeight; }
+        function scrollToBottom(force = false) {
+            var objDiv = document.getElementById("chatLogsContainer");
+            if (objDiv) {
+                var isScrolledToBottom = objDiv.scrollHeight - objDiv.clientHeight <= objDiv.scrollTop + 100;
+                if (isScrolledToBottom || force) {
+                    objDiv.scrollTop = objDiv.scrollHeight;
+                }
+            }
+        }
+
+        // Run on load
+        scrollToBottom(true);
 
         function filterSidebarChats() {
-        var input = document.getElementById("sidebarSearchInput").value.toLowerCase();
-        var items = document.querySelectorAll("#chatUsersList .user-item");
+            var input = document.getElementById("sidebarSearchInput").value.toLowerCase();
+            var items = document.querySelectorAll("#chatUsersList .user-item");
 
-        items.forEach(function(item) {
-        var name = item.querySelector(".chat-name").textContent.toLowerCase();
-        var phone = item.querySelector(".chat-phone").textContent.toLowerCase();
+            items.forEach(function(item) {
+                var name = item.querySelector(".chat-name").textContent.toLowerCase();
+                var phone = item.querySelector(".chat-phone").textContent.toLowerCase();
 
-        if (name.includes(input) || phone.includes(input)) {
-        item.style.setProperty("display", "flex", "important");
-        } else {
-        item.style.setProperty("display", "none", "important");
-        }
-        });
+                if (name.includes(input) || phone.includes(input)) {
+                    item.style.setProperty("display", "flex", "important");
+                } else {
+                    item.style.setProperty("display", "none", "important");
+                }
+            });
         }
 
         const chatContainer = document.getElementById("chatLogsContainer");
-
         if (chatContainer) {
-        const observer = new MutationObserver(() => {
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-        });
-        observer.observe(chatContainer, { childList: true });
+            const observer = new MutationObserver(() => {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            });
+            observer.observe(chatContainer, { childList: true });
         }
 
+        // File Select UI feedback handles
+        function handleFileSelect() {
+            var fileInput = document.getElementById('imageFileInput');
+            var attachBtn = document.getElementById('attachBtn');
+            if (fileInput.files.length > 0) {
+                attachBtn.classList.add('has-file');
+                attachBtn.innerHTML = `<i class="fa-solid fa-check"></i>`;
+                document.getElementById('messageTextInput').placeholder = "Image attached: " + fileInput.files[0].name;
+            } else {
+                attachBtn.classList.remove('has-file');
+                attachBtn.innerHTML = `<i class="fa-solid fa-paperclip"></i>`;
+                document.getElementById('messageTextInput').placeholder = "Type transmission message...";
+            }
+        }
+
+        // Send Message AJAX
+        function submitMessageAJAX(e) {
+            e.preventDefault();
+            var form = document.getElementById('sendMessageForm');
+            var inputField = document.getElementById('messageTextInput');
+            var fileInput = document.getElementById('imageFileInput');
+
+            if (!inputField.value.trim() && fileInput.files.length === 0) return;
+
+            var formData = new FormData(form);
+
+            fetch(form.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    inputField.value = '';
+                    fileInput.value = '';
+                    handleFileSelect();
+
+                    // 500ms delay to give the server upload breathing room
+                    setTimeout(function() {
+                        triggerBackgroundRefresh();
+                    }, 500);
+                } else {
+                    console.error("Server side par koi error aya hai.");
+                }
+            })
+            .catch(error => console.error("Error sending message:", error));
+        }
+
+        // Delete Message AJAX
+        function deleteMessageAJAX(e, form) {
+            e.preventDefault();
+            var formData = new FormData(form);
+            fetch(form.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if(response.ok) {
+                    triggerBackgroundRefresh();
+                }
+            })
+            .catch(error => console.error("Error deleting message:", error));
+        }
+
+        // 🔥 UPGRADED AJAX AUTO REFRESH HANDLER: Handles both Partial View & Raw Text safely
+        function triggerBackgroundRefresh() {
+            var citizenPhone = '@currentCitizenPhone';
+            if(!citizenPhone) return;
+
+            fetch('/Chat/GetMessagesPartial?citizenPhone=' + citizenPhone)
+                .then(response => {
+                    if (!response.ok) throw new Error("Partial View not found");
+                    return response.text();
+                })
+                .then(htmlContent => {
+                    var currentContainer = document.getElementById('chatLogsContainer');
+                    if (currentContainer && currentContainer.innerHTML.trim() !== htmlContent.trim()) {
+
+                        // Client side rendering extension safety hook
+                        currentContainer.innerHTML = htmlContent;
+
+                        // Re-parsing logic hook to fix extension checks dynamically on update
+                        var items = currentContainer.querySelectorAll('.msg-content-text');
+                        items.forEach(el => {
+                            let text = el.textContent.trim();
+                            let textLower = text.toLowerCase();
+                            var isImg = (textLower.startsWith('/uploads/') || textLower.startsWith('http://') || textLower.startsWith('https://')) &&
+                                         (textLower.endsWith('.jpg') || textLower.endsWith('.jpeg') || textLower.endsWith('.png') || textLower.endsWith('.gif'));
+                            if (isImg && !el.querySelector('img')) {
+                                el.innerHTML = `<img src="${text}" class="chat-image-attachment" alt="Transmission Attachment" onclick="zoomImage(this.src)" />`;
+                            }
+                        });
+
+                        scrollToBottom(false);
+                    }
+                })
+                .catch(error => {
+                    fetch('/Chat/ViewChat?citizenPhone=' + citizenPhone)
+                        .then(res => res.text())
+                        .then(html => {
+                            var parser = new DOMParser();
+                            var doc = parser.parseFromString(html, 'text/html');
+                            var newMessages = doc.getElementById('chatLogsContainer').innerHTML;
+                            var currentContainer = document.getElementById('chatLogsContainer');
+                            if (currentContainer && currentContainer.innerHTML.trim() !== newMessages.trim()) {
+                                currentContainer.innerHTML = newMessages;
+                                scrollToBottom(false);
+                            }
+                        });
+                });
+        }
+
+        @if (!string.IsNullOrEmpty(currentCitizenPhone))
+        {
+                    <text>
+                    setInterval(triggerBackgroundRefresh, 3000); // 3 seconds loop
+                    </text>
+        }
+
+        // Zoom Image using SweetAlert2
+        function zoomImage(imgSrc) {
+            Swal.fire({
+                imageUrl: imgSrc,
+                imageAlt: 'Evidence Transmission',
+                background: '#131026',
+                showConfirmButton: false,
+                showCloseButton: true,
+                maxWidth: '80%'
+            });
+        }
+
+        // Terminate Chat Room Handler
         function confirmDeleteChat(chatId, phone) {
-        Swal.fire({
-        title: 'Terminate Room?',
-        text: "This will discard the entire communication workspace dashboard visibility!",
-        icon: 'warning',
-        background: '#131026',
-        color: '#fff',
-        showCancelButton: true,
-        confirmButtonColor: '#ef4444',
-        cancelButtonColor: '#6c5ce7',
-        confirmButtonText: 'Yes, Delete'
-        }).then((result) => {
-        if (result.isConfirmed) {
-        var form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '/Chat/DeleteChatRoom';
+            Swal.fire({
+                title: 'Terminate Room?',
+                text: "This will discard the entire communication workspace dashboard visibility!",
+                icon: 'warning',
+                background: '#131026',
+                color: '#fff',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6c5ce7',
+                confirmButtonText: 'Yes, Delete'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    var form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '/Chat/DeleteChatRoom';
 
-        var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                    var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
 
-        form.innerHTML = `
-        <input type="hidden" name="__RequestVerificationToken" value="${token}" />
-        <input type="hidden" name="chatId" value="${chatId}" />
-        <input type="hidden" name="citizenPhone" value="${phone}" />
-        `;
-        document.body.appendChild(form);
-        form.submit();
-        }
-        });
+                    form.innerHTML = `
+                        <input type="hidden" name="__RequestVerificationToken" value="${token}" />
+                        <input type="hidden" name="chatId" value="${chatId}" />
+                        <input type="hidden" name="citizenPhone" value="${phone}" />
+                    `;
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
         }
     </script>
 </body>

@@ -504,7 +504,7 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
         }
 
         // ==========================================
-        // 3. ASSIGN OFFICER (FIXED & STREAMLINED)
+        // 3. ASSIGN OFFICER (FIXED & PIPELINE ISOLATED)
         // ==========================================
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -512,114 +512,162 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
         {
             if (!IsAdminAuthenticated()) return RedirectToAction("AdminLogin", "Account");
 
-            using (SqlConnection con = new SqlConnection(_connectionString))
+            string crimeType = "N/A", location = "N/A", formattedDate = "N/A";
+            string currentOfficerName = "Officer", currentOfficerPhone = "N/A";
+            List<string> allAssignedOfficersList = new List<string>();
+            int chatId = 0;
+
+            try
             {
-                con.Open();
-
-                // 1. Check mapping duplicate guard
-                string checkQuery = "SELECT COUNT(1) FROM ComplaintAssignments WHERE ComplaintId = @cId AND OfficerId = @oId";
-                int count = 0;
-                using (SqlCommand checkCmd = new SqlCommand(checkQuery, con))
+                using (SqlConnection con = new SqlConnection(_connectionString))
                 {
-                    checkCmd.Parameters.AddWithValue("@cId", complaintId);
-                    checkCmd.Parameters.AddWithValue("@oId", officerId);
-                    count = Convert.ToInt32(checkCmd.ExecuteScalar());
-                }
+                    con.Open();
 
-                if (count == 0)
-                {
-                    // 2. Map Officer allocation
-                    string insertQuery = "INSERT INTO ComplaintAssignments (ComplaintId, OfficerId, AssignedDate) VALUES (@cId, @oId, GETDATE())";
-                    using (SqlCommand insertCmd = new SqlCommand(insertQuery, con))
+                    // 1. Duplicate Assignment Check
+                    string checkQuery = "SELECT COUNT(1) FROM ComplaintAssignments WHERE ComplaintId = @cId AND OfficerId = @oId";
+                    int count = 0;
+                    using (SqlCommand checkCmd = new SqlCommand(checkQuery, con))
                     {
-                        insertCmd.Parameters.AddWithValue("@cId", complaintId);
-                        insertCmd.Parameters.AddWithValue("@oId", officerId);
-                        insertCmd.ExecuteNonQuery();
+                        checkCmd.Parameters.AddWithValue("@cId", complaintId);
+                        checkCmd.Parameters.AddWithValue("@oId", officerId);
+                        count = Convert.ToInt32(checkCmd.ExecuteScalar());
                     }
-                }
 
-                // 3. Elevate State Pipeline to 'In Progress'
-                string updateStatusQuery = "UPDATE Complaints SET Status = 'In Progress' WHERE ID = @cId";
-                using (SqlCommand updateCmd = new SqlCommand(updateStatusQuery, con))
-                {
-                    updateCmd.Parameters.AddWithValue("@cId", complaintId);
-                    updateCmd.ExecuteNonQuery();
-                }
-
-                // 4. Optimized Safe Retrieval (Replaced CROSS JOIN with direct distinct checks)
-                string crimeType = "N/A", location = "N/A", officerName = "Officer", officerRank = "Assigned";
-
-                string compQuery = "SELECT CrimeType, Location FROM Complaints WHERE ID = @cId";
-                using (SqlCommand compCmd = new SqlCommand(compQuery, con))
-                {
-                    compCmd.Parameters.AddWithValue("@cId", complaintId);
-                    using (SqlDataReader r1 = compCmd.ExecuteReader())
+                    if (count == 0)
                     {
-                        if (r1.Read())
+                        // 2. Insert Assignment
+                        string insertQuery = "INSERT INTO ComplaintAssignments (ComplaintId, OfficerId, AssignedDate) VALUES (@cId, @oId, GETDATE())";
+                        using (SqlCommand insertCmd = new SqlCommand(insertQuery, con))
                         {
-                            crimeType = r1["CrimeType"] != DBNull.Value ? r1["CrimeType"].ToString() : "N/A";
-                            location = r1["Location"] != DBNull.Value ? r1["Location"].ToString() : "N/A";
+                            insertCmd.Parameters.AddWithValue("@cId", complaintId);
+                            insertCmd.Parameters.AddWithValue("@oId", officerId);
+                            insertCmd.ExecuteNonQuery();
+                        }
+                    }
+
+                    // 3. Update Complaint Status
+                    string updateStatusQuery = "UPDATE Complaints SET Status = 'In Progress' WHERE ID = @cId";
+                    using (SqlCommand updateCmd = new SqlCommand(updateStatusQuery, con))
+                    {
+                        updateCmd.Parameters.AddWithValue("@cId", complaintId);
+                        updateCmd.ExecuteNonQuery();
+                    }
+
+                    // 4. Fetch Complaint Details
+                    string compQuery = "SELECT CrimeType, Location, IncidentDate FROM Complaints WHERE ID = @cId";
+                    using (SqlCommand compCmd = new SqlCommand(compQuery, con))
+                    {
+                        compCmd.Parameters.AddWithValue("@cId", complaintId);
+                        using (SqlDataReader r1 = compCmd.ExecuteReader())
+                        {
+                            if (r1.Read())
+                            {
+                                crimeType = r1["CrimeType"] != DBNull.Value ? r1["CrimeType"].ToString() : "N/A";
+                                location = r1["Location"] != DBNull.Value ? r1["Location"].ToString() : "N/A";
+                                if (r1["IncidentDate"] != DBNull.Value)
+                                {
+                                    formattedDate = Convert.ToDateTime(r1["IncidentDate"]).ToString("dd/MM/yyyy");
+                                }
+                            }
+                        }
+                    }
+
+                    // 5. Fetch Officer Details
+                    string offQuery = "SELECT Name, PhoneNumber FROM Officers WHERE Id = @oId";
+                    using (SqlCommand offCmd = new SqlCommand(offQuery, con))
+                    {
+                        offCmd.Parameters.AddWithValue("@oId", officerId);
+                        using (SqlDataReader r2 = offCmd.ExecuteReader())
+                        {
+                            if (r2.Read())
+                            {
+                                currentOfficerName = r2["Name"].ToString();
+                                currentOfficerPhone = r2["PhoneNumber"].ToString();
+                            }
+                        }
+                    }
+
+                    // 6. Fetch Co-Officers
+                    string allOfficersQuery = @"
+                        SELECT o.Name, o.PhoneNumber 
+                        FROM ComplaintAssignments ca
+                        JOIN Officers o ON ca.OfficerId = o.Id
+                        WHERE ca.ComplaintId = @cId";
+
+                    using (SqlCommand allOffCmd = new SqlCommand(allOfficersQuery, con))
+                    {
+                        allOffCmd.Parameters.AddWithValue("@cId", complaintId);
+                        using (SqlDataReader r3 = allOffCmd.ExecuteReader())
+                        {
+                            while (r3.Read())
+                            {
+                                allAssignedOfficersList.Add($"{r3["Name"]} ({r3["PhoneNumber"]})");
+                            }
+                        }
+                    }
+
+                    // 7. Get or Create Chat Room (FIXED: Removed IsDeleted constraint to prevent duplicates)
+                    string getChatQuery = "SELECT TOP 1 ChatId FROM GroupChats WHERE ComplaintId = @cId ORDER BY ChatId DESC";
+                    using (SqlCommand getChatCmd = new SqlCommand(getChatQuery, con))
+                    {
+                        getChatCmd.Parameters.AddWithValue("@cId", complaintId);
+                        var res = getChatCmd.ExecuteScalar();
+                        if (res != null) chatId = Convert.ToInt32(res);
+                    }
+
+                    if (chatId == 0)
+                    {
+                        string createChatQuery = "INSERT INTO GroupChats (ComplaintId, IsDeleted) OUTPUT INSERTED.ChatId VALUES (@cId, 0)";
+                        using (SqlCommand createChatCmd = new SqlCommand(createChatQuery, con))
+                        {
+                            createChatCmd.Parameters.AddWithValue("@cId", complaintId);
+                            chatId = Convert.ToInt32(createChatCmd.ExecuteScalar());
+                        }
+                    }
+
+                    // 8. Generate Alerts Text
+                    string citizenAlert = $"🟢 *YOUR CASE HAS BEEN APPROVED & ASSIGNED* 🟢\n\n" +
+                                          $"📂 *Case Reference:* #{complaintId}\n" +
+                                          $"⚠️ *Crime Name:* {crimeType}\n" +
+                                          $"👮 *Assigned Investigator:* {currentOfficerName}\n" +
+                                          $"📞 *Officer Contact:* {currentOfficerPhone}";
+
+                    // 9. Safe Message Insert (With Fallback Strategy)
+                    try
+                    {
+                        string queryWithTime = "INSERT INTO ChatMessages (ChatId, SenderType, SenderName, MessageText, Timestamp) VALUES (@chatId, 'System', 'CrimeVision Bot', @msg, GETDATE())";
+                        using (SqlCommand cmd = new SqlCommand(queryWithTime, con))
+                        {
+                            cmd.Parameters.AddWithValue("@chatId", chatId);
+                            cmd.Parameters.AddWithValue("@msg", citizenAlert);
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+                    catch (SqlException)
+                    {
+                        string queryNoTime = "INSERT INTO ChatMessages (ChatId, SenderType, SenderName, MessageText) VALUES (@chatId, 'System', 'CrimeVision Bot', @msg)";
+                        using (SqlCommand cmdFallback = new SqlCommand(queryNoTime, con))
+                        {
+                            cmdFallback.Parameters.AddWithValue("@chatId", chatId);
+                            cmdFallback.Parameters.AddWithValue("@msg", citizenAlert);
+                            cmdFallback.ExecuteNonQuery();
                         }
                     }
                 }
 
-                string offQuery = "SELECT Name, Rank FROM Officers WHERE Id = @oId";
-                using (SqlCommand offCmd = new SqlCommand(offQuery, con))
-                {
-                    offCmd.Parameters.AddWithValue("@oId", officerId);
-                    using (SqlDataReader r2 = offCmd.ExecuteReader())
-                    {
-                        if (r2.Read())
-                        {
-                            officerName = r2["Name"].ToString();
-                            officerRank = r2["Rank"].ToString();
-                        }
-                    }
-                }
-
-                // 5. Group Chat Hub pipeline confirmation
-                int chatId = 0;
-                string getChatQuery = "SELECT ChatId FROM GroupChats WHERE ComplaintId = @cId AND IsDeleted = 0";
-                using (SqlCommand getChatCmd = new SqlCommand(getChatQuery, con))
-                {
-                    getChatCmd.Parameters.AddWithValue("@cId", complaintId);
-                    var res = getChatCmd.ExecuteScalar();
-                    if (res != null) chatId = Convert.ToInt32(res);
-                }
-
-                if (chatId == 0)
-                {
-                    string createChatQuery = "INSERT INTO GroupChats (ComplaintId) OUTPUT INSERTED.ChatId VALUES (@cId)";
-                    using (SqlCommand createChatCmd = new SqlCommand(createChatQuery, con))
-                    {
-                        createChatCmd.Parameters.AddWithValue("@cId", complaintId);
-                        chatId = Convert.ToInt32(createChatCmd.ExecuteScalar());
-                    }
-                }
-
-                // 6. Push Live notification log packet 
-                string systemMessage = $"🚨 *CASE ASSIGNMENT ALERT* 🚨\n\n" +
-                                       $"📂 *Case Reference:* #{complaintId}\n" +
-                                       $"⚠️ *Crime Category:* {crimeType}\n" +
-                                       $"📍 *Location Zone:* {location}\n" +
-                                       $"━━━━━━━━━━━━━━━━━━━━\n" +
-                                       $"👮 *Assigned Officer:* {officerRank} {officerName}\n\n" +
-                                       $"💬 Investigation room activated. Live communication initialized.";
-
-                string insertMsgQuery = "INSERT INTO ChatMessages (ChatId, SenderType, SenderName, MessageText, Timestamp) VALUES (@chatId, 'System', 'CrimeVision Bot', @msg, GETDATE())";
-                using (SqlCommand msgCmd = new SqlCommand(insertMsgQuery, con))
-                {
-                    msgCmd.Parameters.AddWithValue("@chatId", chatId);
-                    msgCmd.Parameters.AddWithValue("@msg", systemMessage);
-                    msgCmd.ExecuteNonQuery();
-                }
+                TempData["SuccessMessage"] = "Officer assigned successfully and message logged!";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "CRITICAL ERROR: " + ex.Message;
+                System.Diagnostics.Debug.WriteLine("CRIMEVISION ERROR: " + ex.ToString());
             }
 
             return RedirectToAction("CrimeReports");
         }
 
         // ==========================================
-        // 4. APPROVE COMPLAINT (Initial Room Setup)
+        // 4. APPROVE COMPLAINT (Initial Room Setup - FIXED)
         // ==========================================
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -627,139 +675,164 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
         {
             if (!IsAdminAuthenticated()) return RedirectToAction("AdminLogin", "Account");
 
-            using (SqlConnection con = new SqlConnection(_connectionString))
+            int chatId = 0;
+            string crimeType = "N/A";
+            string location = "N/A";
+            string citizenName = "Citizen";
+            DateTime incidentDate = DateTime.Now;
+
+            try
             {
-                con.Open();
-
-                string updateQuery = "UPDATE Complaints SET Status = 'Approved' WHERE ID = @id";
-                using (SqlCommand cmdUpdate = new SqlCommand(updateQuery, con))
+                using (SqlConnection con = new SqlConnection(_connectionString))
                 {
-                    cmdUpdate.Parameters.AddWithValue("@id", id);
-                    cmdUpdate.ExecuteNonQuery();
-                }
+                    con.Open();
 
-                string crimeType = "N/A", location = "N/A";
-                string fetchCaseQuery = "SELECT CrimeType, Location FROM Complaints WHERE ID = @id";
-                using (SqlCommand cmdFetch = new SqlCommand(fetchCaseQuery, con))
-                {
-                    cmdFetch.Parameters.AddWithValue("@id", id);
-                    using (SqlDataReader caseReader = cmdFetch.ExecuteReader())
+                    // 1. Update status
+                    string updateQuery = "UPDATE Complaints SET Status='Approved' WHERE ID=@id";
+                    using (SqlCommand cmd = new SqlCommand(updateQuery, con))
                     {
-                        if (caseReader.Read())
+                        cmd.Parameters.AddWithValue("@id", id);
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    // 2. Fetch complaint data
+                    string fetchQuery = "SELECT CrimeType, Location, CitizenName, IncidentDate FROM Complaints WHERE ID=@id";
+                    using (SqlCommand cmd = new SqlCommand(fetchQuery, con))
+                    {
+                        cmd.Parameters.AddWithValue("@id", id);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
                         {
-                            crimeType = caseReader["CrimeType"] != DBNull.Value ? caseReader["CrimeType"].ToString() : "N/A";
-                            location = caseReader["Location"] != DBNull.Value ? caseReader["Location"].ToString() : "N/A";
+                            if (reader.Read())
+                            {
+                                crimeType = reader["CrimeType"] != DBNull.Value ? reader["CrimeType"].ToString() : "N/A";
+                                location = reader["Location"] != DBNull.Value ? reader["Location"].ToString() : "N/A";
+                                citizenName = reader["CitizenName"] != DBNull.Value ? reader["CitizenName"].ToString() : "Citizen";
+
+                                if (reader["IncidentDate"] != DBNull.Value)
+                                    incidentDate = Convert.ToDateTime(reader["IncidentDate"]);
+                            }
+                        }
+                    }
+
+                    // 3. Get or Create Chat (FIXED: Standardized query to avoid duplicates)
+                    string getChat = "SELECT TOP 1 ChatId FROM GroupChats WHERE ComplaintId=@id ORDER BY ChatId DESC";
+                    using (SqlCommand cmd = new SqlCommand(getChat, con))
+                    {
+                        cmd.Parameters.AddWithValue("@id", id);
+                        var res = cmd.ExecuteScalar();
+                        if (res != null) chatId = Convert.ToInt32(res);
+                    }
+
+                    if (chatId == 0)
+                    {
+                        string createChat = "INSERT INTO GroupChats (ComplaintId, IsDeleted) OUTPUT INSERTED.ChatId VALUES (@id, 0)";
+                        using (SqlCommand cmd = new SqlCommand(createChat, con))
+                        {
+                            cmd.Parameters.AddWithValue("@id", id);
+                            chatId = Convert.ToInt32(cmd.ExecuteScalar());
+                        }
+                    }
+
+                    // 4. MESSAGE GENERATION
+                    string message = $"🎉 *CASE APPROVED*\n\nDear {citizenName},\n\nYour complaint has been approved.\n\nCase ID: #{id}\nCrime Type: {crimeType}\nLocation: {location}\nDate: {incidentDate:dd MMM yyyy}\n\nOfficer will be assigned soon.";
+
+                    // 5. Safe Insert to ChatMessages
+                    try
+                    {
+                        string insertMsg = "INSERT INTO ChatMessages (ChatId, SenderType, SenderName, MessageText, Timestamp) VALUES (@chatId, 'System', 'CrimeVision Bot', @msg, GETDATE())";
+                        using (SqlCommand cmd = new SqlCommand(insertMsg, con))
+                        {
+                            cmd.Parameters.AddWithValue("@chatId", chatId);
+                            cmd.Parameters.AddWithValue("@msg", message);
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+                    catch (SqlException)
+                    {
+                        string insertMsgNoTime = "INSERT INTO ChatMessages (ChatId, SenderType, SenderName, MessageText) VALUES (@chatId, 'System', 'CrimeVision Bot', @msg)";
+                        using (SqlCommand cmd = new SqlCommand(insertMsgNoTime, con))
+                        {
+                            cmd.Parameters.AddWithValue("@chatId", chatId);
+                            cmd.Parameters.AddWithValue("@msg", message);
+                            cmd.ExecuteNonQuery();
                         }
                     }
                 }
-
-                int chatId = 0;
-                string checkChatQuery = "SELECT ChatId FROM GroupChats WHERE ComplaintId = @id AND IsDeleted = 0";
-                using (SqlCommand cmd = new SqlCommand(checkChatQuery, con))
-                {
-                    cmd.Parameters.AddWithValue("@id", id);
-                    var res = cmd.ExecuteScalar();
-                    if (res != null) { chatId = Convert.ToInt32(res); }
-                }
-
-                if (chatId == 0)
-                {
-                    string createChatQuery = "INSERT INTO GroupChats (ComplaintId) OUTPUT INSERTED.ChatId VALUES (@id)";
-                    using (SqlCommand cmd = new SqlCommand(createChatQuery, con))
-                    {
-                        cmd.Parameters.AddWithValue("@id", id);
-                        chatId = Convert.ToInt32(cmd.ExecuteScalar());
-                    }
-                }
-
-                string customSystemMessage = $"🚨 *Case Status Update* 🚨\n\n" +
-                                             $"📂 *Case ID:* #{id}\n" +
-                                             $"⚠️ *Crime Type:* {crimeType}\n" +
-                                             $"📍 *Location:* {location}\n\n" +
-                                             $"✅ This report has been verified by the Admin panel. A dedicated field officer will be allocated shortly.";
-
-                string systemMsgQuery = "INSERT INTO ChatMessages (ChatId, SenderType, SenderName, MessageText, Timestamp) VALUES (@chatId, 'System', 'System Bot', @msg, GETDATE())";
-                using (SqlCommand cmdMsg = new SqlCommand(systemMsgQuery, con))
-                {
-                    cmdMsg.Parameters.AddWithValue("@chatId", chatId);
-                    cmdMsg.Parameters.AddWithValue("@msg", customSystemMessage);
-                    cmdMsg.ExecuteNonQuery();
-                }
+                TempData["SuccessMessage"] = "Complaint approved successfully!";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "ERROR IN APPROVAL: " + ex.Message;
             }
 
             return RedirectToAction("CrimeReports");
         }
-
         // ==========================================
         // 5. COMPLETE COMPLAINT (With Final Closure Message)
         // ==========================================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult CompleteComplaint(int id)
+        public IActionResult CompleteComplaint(int complaintId)
         {
-            if (!IsAdminAuthenticated()) return RedirectToAction("AdminLogin", "Account");
+            if (!IsAdminAuthenticated())
+                return RedirectToAction("AdminLogin", "Account");
+
+            int chatId = 0;
+            string crimeType = "N/A";
+            string citizenName = "Citizen";
 
             using (SqlConnection con = new SqlConnection(_connectionString))
             {
                 con.Open();
 
-                string fetchDetailsQuery = "SELECT CrimeType, CitizenName, Location FROM Complaints WHERE ID = @id";
-                string crimeType = "N/A", citizenName = "Anonymous", location = "N/A";
-
-                using (SqlCommand cmdFetch = new SqlCommand(fetchDetailsQuery, con))
+                // 1. Update
+                string update = "UPDATE Complaints SET Status='Completed' WHERE ID=@id";
+                using (SqlCommand cmd = new SqlCommand(update, con))
                 {
-                    cmdFetch.Parameters.AddWithValue("@id", id);
-                    using (SqlDataReader reader = cmdFetch.ExecuteReader())
+                    cmd.Parameters.AddWithValue("@id", complaintId);
+                    cmd.ExecuteNonQuery();
+                }
+
+                // 2. Fetch
+                string fetch = "SELECT CrimeType, CitizenName FROM Complaints WHERE ID=@id";
+                using (SqlCommand cmd = new SqlCommand(fetch, con))
+                {
+                    cmd.Parameters.AddWithValue("@id", complaintId);
+                    using (SqlDataReader r = cmd.ExecuteReader())
                     {
-                        if (reader.Read())
+                        if (r.Read())
                         {
-                            crimeType = reader["CrimeType"] != DBNull.Value ? reader["CrimeType"].ToString() : "N/A";
-                            citizenName = reader["CitizenName"] != DBNull.Value ? reader["CitizenName"].ToString() : "Anonymous";
-                            location = reader["Location"] != DBNull.Value ? reader["Location"].ToString() : "N/A";
+                            crimeType = r["CrimeType"] != DBNull.Value ? r["CrimeType"].ToString() : "N/A";
+                            citizenName = r["CitizenName"] != DBNull.Value ? r["CitizenName"].ToString() : "Citizen";
                         }
                     }
                 }
 
-                string updateQuery = "UPDATE Complaints SET Status = 'Completed' WHERE ID = @id";
-                using (SqlCommand cmdUpdate = new SqlCommand(updateQuery, con))
+                // 3. Chat
+                string getChat = "SELECT ChatId FROM GroupChats WHERE ComplaintId=@id";
+                using (SqlCommand cmd = new SqlCommand(getChat, con))
                 {
-                    cmdUpdate.Parameters.AddWithValue("@id", id);
-                    cmdUpdate.ExecuteNonQuery();
-                }
-
-                int chatId = 0;
-                string getChatQuery = "SELECT ChatId FROM GroupChats WHERE ComplaintId = @id AND IsDeleted = 0";
-                using (SqlCommand getChatCmd = new SqlCommand(getChatQuery, con))
-                {
-                    getChatCmd.Parameters.AddWithValue("@id", id);
-                    var res = getChatCmd.ExecuteScalar();
+                    cmd.Parameters.AddWithValue("@id", complaintId);
+                    var res = cmd.ExecuteScalar();
                     if (res != null) chatId = Convert.ToInt32(res);
                 }
 
                 if (chatId > 0)
                 {
-                    string closureMessage = $"✅ *CASE RESOLUTION REPORT* ✅\n\n" +
-                                            $"📂 *Case Reference:* #{id}\n" +
-                                            $"👤 *Citizen Name:* {citizenName}\n" +
-                                            $"⚠️ *Crime Category:* {crimeType}\n" +
-                                            $"📍 *Incident Scene:* {location}\n" +
-                                            $"━━━━━━━━━━━━━━━━━━━━\n" +
-                                            $"🏁 *Status Update:* This case has been successfully resolved and marked as *COMPLETED*.\n\n" +
-                                            $"🔒 This official communication channel is now securely logged.";
+                    string msg = $"✅ *CASE CLOSED*\n\nDear {citizenName},\n\nCase #{complaintId} has been completed.\n\nCrime: {crimeType}\n\nThank you for using CrimeVision.";
 
-                    string insertMsgQuery = "INSERT INTO ChatMessages (ChatId, SenderType, SenderName, MessageText, Timestamp) VALUES (@chatId, 'System', 'CrimeVision Bot', @msg, GETDATE())";
-                    using (SqlCommand msgCmd = new SqlCommand(insertMsgQuery, con))
+                    string insert = "INSERT INTO ChatMessages (ChatId, SenderType, SenderName, MessageText) VALUES (@chatId, 'System', 'CrimeVision Bot', @msg)";
+                    using (SqlCommand cmd = new SqlCommand(insert, con))
                     {
-                        msgCmd.Parameters.AddWithValue("@chatId", chatId);
-                        msgCmd.Parameters.AddWithValue("@msg", closureMessage);
-                        msgCmd.ExecuteNonQuery();
+                        cmd.Parameters.AddWithValue("@chatId", chatId);
+                        cmd.Parameters.AddWithValue("@msg", msg);
+                        cmd.ExecuteNonQuery();
                     }
                 }
             }
 
             return RedirectToAction("CrimeReports");
         }
-
         // ==========================================
         // 8. PUBLIC ALERTS MANAGEMENT
         // ==========================================

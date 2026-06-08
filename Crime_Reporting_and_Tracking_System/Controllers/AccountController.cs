@@ -332,17 +332,21 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
         // ==============================================================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult SubmitComplaint(string CrimeType, DateTime IncidentDate, string Location, string Description)
+        public IActionResult SubmitComplaint(string CrimeType, DateTime IncidentDate, string Location, string Description, IFormFile EvidenceFile)
         {
             string conString = _configuration.GetConnectionString("CrimeDB");
 
-            // Session values are fetched or cleanly defaulted
             string citizenName = HttpContext.Session.GetString("UserName") ?? "Nafeesa Haroon";
             string citizenPhone = HttpContext.Session.GetString("UserPhone") ?? "03001234567";
 
+            int complaintId = 0;
+
+            // 1. Complaint data insert karein aur uski ID get karein
             using (SqlConnection con = new SqlConnection(conString))
             {
+                // OUTPUT INSERTED.ID lagaya hai taake new complaint ki ID mil sake
                 string query = "INSERT INTO Complaints (CrimeType, IncidentDate, Location, Description, Status, CitizenName, CitizenPhone) " +
+                               "OUTPUT INSERTED.ID " +
                                "VALUES (@ct, @id, @loc, @desc, 'Pending Approval', @name, @phone)";
 
                 using (SqlCommand cmd = new SqlCommand(query, con))
@@ -355,7 +359,47 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                     cmd.Parameters.AddWithValue("@phone", citizenPhone);
 
                     con.Open();
-                    cmd.ExecuteNonQuery();
+                    complaintId = (int)cmd.ExecuteScalar(); // ID save ho gayi
+                }
+            }
+
+            // 2. Agar user ne image/file select ki hai, to usay save karein
+            if (EvidenceFile != null && EvidenceFile.Length > 0)
+            {
+                // Path set karein: wwwroot/uploads/evidence/
+                string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "evidence");
+
+                // Agar folder nahi bana hua to create kar de
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                // Unique filename banayein taake files overwrite na hon
+                string uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(EvidenceFile.FileName);
+                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                // File ko folder mein save karein
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    EvidenceFile.CopyTo(fileStream);
+                }
+
+                // Database mein relative path save karne ke liye format: uploads/evidence/filename.jpg
+                string dbPath = "uploads/evidence/" + uniqueFileName;
+
+                // 3. Evidence table mein record insert karein
+                using (SqlConnection con = new SqlConnection(conString))
+                {
+                    string evidenceQuery = "INSERT INTO Evidence (ComplaintId, FilePath) VALUES (@complaintId, @filePath)";
+                    using (SqlCommand cmd = new SqlCommand(evidenceQuery, con))
+                    {
+                        cmd.Parameters.AddWithValue("@complaintId", complaintId);
+                        cmd.Parameters.AddWithValue("@filePath", dbPath);
+
+                        con.Open();
+                        cmd.ExecuteNonQuery();
+                    }
                 }
             }
 

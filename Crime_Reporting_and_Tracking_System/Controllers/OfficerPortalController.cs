@@ -50,17 +50,33 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
         {
             string oid = HttpContext.Session.GetString("OfficerId");
             if (string.IsNullOrEmpty(oid)) return RedirectToAction("Login");
+
             List<dynamic> list = new List<dynamic>();
             int t = 0, a = 0, r = 0;
+            string dbPhoneNumber = ""; // Fallback k liye database variable
+
             using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("CrimeDB")))
             {
-                string query = @"SELECT C.* FROM Complaints C INNER JOIN ComplaintAssignments A ON C.ID = A.ComplaintId WHERE A.OfficerId = @oid ORDER BY C.ID DESC";
+                // Query mein Officers table join kiya taake PhoneNumber mil sake safely
+                string query = @"SELECT C.*, O.PhoneNumber AS OffPhone 
+                         FROM Complaints C 
+                         INNER JOIN ComplaintAssignments A ON C.ID = A.ComplaintId 
+                         INNER JOIN Officers O ON A.OfficerId = O.Id
+                         WHERE A.OfficerId = @oid 
+                         ORDER BY C.ID DESC";
+
                 SqlCommand cmd = new SqlCommand(query, con);
                 cmd.Parameters.AddWithValue("@oid", oid);
                 con.Open();
                 SqlDataReader reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
+                    // Pehle loop mein hi officer ka phone number nikal ayega
+                    if (string.IsNullOrEmpty(dbPhoneNumber))
+                    {
+                        dbPhoneNumber = reader["OffPhone"]?.ToString();
+                    }
+
                     var c = new ExpandoObject() as IDictionary<string, object>;
                     c.Add("ID", reader["ID"]);
                     c.Add("CrimeType", reader["CrimeType"]);
@@ -72,11 +88,24 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                     if (reader["Status"].ToString().Trim().ToLower() == "resolved") r++; else a++;
                 }
             }
+
+            // 🔥 DUAL CHECK SAFETY: Agar Session khali hai to Direct Database wala phone number use hoga
+            string finalPhone = HttpContext.Session.GetString("PhoneNumber");
+            if (string.IsNullOrEmpty(finalPhone))
+            {
+                finalPhone = dbPhoneNumber;
+            }
+
+            ViewBag.OfficerPhone = finalPhone; // Ab ye kabhi null nahi hoga!
             ViewBag.OfficerName = HttpContext.Session.GetString("OfficerName");
             ViewBag.OfficerRank = HttpContext.Session.GetString("OfficerRank");
             ViewBag.OfficerImage = HttpContext.Session.GetString("OfficerImage");
-            ViewBag.TotalCases = t; ViewBag.ActiveCases = a; ViewBag.ResolvedCases = r;
+
+            ViewBag.TotalCases = t;
+            ViewBag.ActiveCases = a;
+            ViewBag.ResolvedCases = r;
             ViewBag.Complaints = list;
+
             return View();
         }
         #endregion

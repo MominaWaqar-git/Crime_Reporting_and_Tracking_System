@@ -2,6 +2,7 @@
 using Crime_Reporting_and_Tracking_System.Models;
 using CrimeReportingSystem.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +19,7 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
         }
 
         // ==========================================
-        // 1. MAIN CHAT WINDOW (Sidebar & Active Chat Load)
+        // 1. MAIN CHAT WINDOW (Admin Sidebar & Active Chat Load)
         // ==========================================
         [HttpGet]
         public IActionResult ViewChat(string citizenPhone)
@@ -28,33 +29,29 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                 return Content("Database tables properly mapped nahi hain DbContext mein.");
             }
 
-            var rawChatRooms = _context.GroupChats.Where(g => g.IsDeleted == false).ToList();
-            var complaintsList = _context.Complaints.ToList();
-            var usersList = _context.Users.ToList();
-            var officersList = _context.Officers.ToList();
-
-            var sidebarList = (from gc in rawChatRooms
-                               join comp in complaintsList on gc.ComplaintId equals comp.ID into compJoin
-                               from comp in compJoin.DefaultIfEmpty()
-                               where comp != null
-
-                               join usr in usersList on comp.CitizenPhone equals usr.PhoneNumber into userJoin
+            var sidebarList = (from gc in _context.GroupChats
+                               where gc.IsDeleted == false
+                               join comp in _context.Complaints on gc.ComplaintId equals comp.ID
+                               join usr in _context.Users on comp.CitizenPhone equals usr.PhoneNumber into userJoin
                                from usr in userJoin.DefaultIfEmpty()
-
-                               join off in officersList on comp.CitizenPhone equals off.PhoneNumber into officerJoin
+                               join off in _context.Officers on comp.CitizenPhone equals off.PhoneNumber into officerJoin
                                from off in officerJoin.DefaultIfEmpty()
-
                                group new { gc, comp, usr, off } by comp.CitizenPhone into g
                                select new
                                {
                                    CitizenPhone = g.Key,
                                    CitizenName = g.FirstOrDefault().usr != null ? g.FirstOrDefault().usr.FullName :
                                                 (g.FirstOrDefault().off != null ? g.FirstOrDefault().off.Name : g.FirstOrDefault().comp.CitizenName),
-
-                                   // 🔥 FIXED: Real-time image normalization for backend sidebar grid
-                                   ProfileImage = GetNormalizedImagePath(g.FirstOrDefault().usr, g.FirstOrDefault().off),
-
+                                   UserImage = g.FirstOrDefault().usr != null ? g.FirstOrDefault().usr.ProfileImage : null,
+                                   OfficerImage = g.FirstOrDefault().off != null ? g.FirstOrDefault().off.ProfilePicturePath : null,
                                    ChatId = g.FirstOrDefault().gc.ChatId
+                               }).ToList()
+                               .Select(x => new
+                               {
+                                   x.CitizenPhone,
+                                   x.CitizenName,
+                                   ProfileImage = GetNormalizedImagePath(x.UserImage, x.OfficerImage),
+                                   x.ChatId
                                }).ToList();
 
             ViewBag.ChatList = sidebarList;
@@ -78,7 +75,7 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                         .ToList();
 
                     var unreadMsgs = _context.ChatMessages
-                        .Where(m => m.ChatId == activeRoom.ChatId && m.IsRead == false && m.SenderType != "Admin")
+                        .Where(m => m.ChatId == activeRoom.ChatId && m.IsRead == false && m.SenderType != "Admin" && m.SenderType != "System")
                         .ToList();
 
                     if (unreadMsgs.Any())
@@ -87,9 +84,9 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                         _context.SaveChanges();
                     }
 
-                    var currentCitizen = complaintsList.FirstOrDefault(c => c.CitizenPhone == citizenPhone);
-                    var currentUser = usersList.FirstOrDefault(u => u.PhoneNumber == citizenPhone);
-                    var currentOfficer = officersList.FirstOrDefault(o => o.PhoneNumber == citizenPhone);
+                    var currentUser = _context.Users.FirstOrDefault(u => u.PhoneNumber == citizenPhone);
+                    var currentOfficer = _context.Officers.FirstOrDefault(o => o.PhoneNumber == citizenPhone);
+                    var currentCitizen = _context.Complaints.FirstOrDefault(c => c.CitizenPhone == citizenPhone);
 
                     ViewBag.SelectedCitizenName = currentUser != null ? currentUser.FullName :
                                                  (currentOfficer != null ? currentOfficer.Name :
@@ -101,37 +98,17 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
             return View(messagesToShow);
         }
 
-        // 🔥 HELPER METHOD: Profile picture path sanitizer engine
-        private static string GetNormalizedImagePath(User usr, Officer off)
+        private static string GetNormalizedImagePath(string userImage, string officerImage)
         {
             string rawPath = "";
+            if (!string.IsNullOrEmpty(userImage)) rawPath = userImage.Trim();
+            else if (!string.IsNullOrEmpty(officerImage)) rawPath = officerImage.Trim();
 
-            if (usr != null && !string.IsNullOrEmpty(usr.ProfileImage))
-            {
-                rawPath = usr.ProfileImage.Trim();
-            }
-            else if (off != null && !string.IsNullOrEmpty(off.ProfilePicturePath))
-            {
-                rawPath = off.ProfilePicturePath.Trim();
-            }
+            if (string.IsNullOrEmpty(rawPath)) return "/images/default-avatar.png";
 
-            if (string.IsNullOrEmpty(rawPath))
-            {
-                return "/images/default-avatar.png";
-            }
-
-            // Remove legacy MVC path tokens
             rawPath = rawPath.Replace("~", "").Replace("\\", "/");
-
-            if (rawPath.StartsWith("/") || rawPath.StartsWith("http"))
-            {
-                return rawPath;
-            }
-
-            if (rawPath.StartsWith("uploads/", StringComparison.OrdinalIgnoreCase))
-            {
-                return "/" + rawPath;
-            }
+            if (rawPath.StartsWith("/") || rawPath.StartsWith("http")) return rawPath;
+            if (rawPath.StartsWith("uploads/", StringComparison.OrdinalIgnoreCase)) return "/" + rawPath;
 
             return "/uploads/" + rawPath;
         }
@@ -192,11 +169,13 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                 _context.GroupChats.Add(newRoom);
                 _context.SaveChanges();
 
-                if (newRoom.ChatId > 0)
+                var verifiedRoom = _context.GroupChats.FirstOrDefault(g => g.ComplaintId == finalComplaintId && g.IsDeleted == false);
+
+                if (verifiedRoom != null && verifiedRoom.ChatId > 0)
                 {
                     var systemMsg = new ChatMessages
                     {
-                        ChatId = newRoom.ChatId,
+                        ChatId = verifiedRoom.ChatId,
                         SenderType = "System",
                         SenderName = "System Log",
                         MessageText = isOfficer ? $"Official channel setup for Officer {personName}." : $"Chat pipeline established for {personName}.",
@@ -213,35 +192,72 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
         }
 
         // ==========================================
-        // 3. SEND MESSAGE (Admin / Officers Desk)
+        // 3. SEND MESSAGE (Admin Desk)
         // ==========================================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult SendMessage(int chatId, string citizenPhone, string messageText, string senderType, string senderName)
+        public IActionResult SendMessage(int chatId, string citizenPhone, string messageText, string senderType, string senderName, IFormFile imageFile)
         {
-            if (!string.IsNullOrWhiteSpace(messageText))
-            {
-                var newMsg = new ChatMessages
-                {
-                    ChatId = chatId,
-                    SenderType = senderType,
-                    SenderName = senderName,
-                    MessageText = messageText.Trim(),
-                    Timestamp = DateTime.Now,
-                    IsDeleted = false,
-                    IsRead = false
-                };
+            string finalMessageText = messageText?.Trim();
 
-                _context.ChatMessages.Add(newMsg);
-                _context.SaveChanges();
+            // 1. Check karein kya user ne koi image file select ki hai?
+            if (imageFile != null && imageFile.Length > 0)
+            {
+                try
+                {
+                    // wwwroot/uploads folder ka path set karein
+                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+
+                    // Agar uploads folder nahi bana hua toh pehle create karein
+                    if (!Directory.Exists(uploadsFolder))
+                    {
+                        Directory.CreateDirectory(uploadsFolder);
+                    }
+
+                    // File ka ek unique naam banayein taake duplicate names overwrite na hon
+                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(imageFile.FileName);
+                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    // File ko folder me save karein
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        imageFile.CopyTo(fileStream);
+                    }
+
+                    // Frontend ki demand ke mutabiq MessageText me poora path save karein
+                    finalMessageText = "/uploads/" + uniqueFileName;
+                }
+                catch (Exception ex)
+                {
+                    // Agar file save karte hue koi error aaye toh handle karein
+                    return BadRequest("File upload failed: " + ex.Message);
+                }
             }
 
-            return RedirectToAction("ViewChat", new { citizenPhone = citizenPhone });
+            // 2. Agar na koi text likha hai aur na hi koi image upload hui hai, toh return kar jayein
+            if (string.IsNullOrWhiteSpace(finalMessageText))
+            {
+                return BadRequest("Message cannot be empty.");
+            }
+
+            // 3. Database me entry insert karein
+            var newMsg = new ChatMessages
+            {
+                ChatId = chatId,
+                SenderType = senderType,
+                SenderName = senderName,
+                MessageText = finalMessageText, // Isme ab text ya image ka path chala jayega
+                Timestamp = DateTime.Now,
+                IsDeleted = false,
+                IsRead = false
+            };
+
+            _context.ChatMessages.Add(newMsg);
+            _context.SaveChanges();
+
+             return Ok();
         }
 
-        // ==========================================
-        // 4. DELETE INDIVIDUAL MESSAGE (Soft Delete)
-        // ==========================================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteMessage(int messageId, string citizenPhone)
@@ -252,13 +268,9 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                 msg.IsDeleted = true;
                 _context.SaveChanges();
             }
-
             return RedirectToAction("ViewChat", new { citizenPhone = citizenPhone });
         }
 
-        // ==========================================
-        // 5. DELETE ENTIRE CHAT ROOM
-        // ==========================================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteChatRoom(int chatId, string citizenPhone)
@@ -269,23 +281,35 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                 room.IsDeleted = true;
                 _context.SaveChanges();
             }
-
             return RedirectToAction("ViewChat", new { citizenPhone = "" });
         }
 
         // ==========================================
-        // 6. CITIZEN VIEW PORTAL (Core Route Engine)
+        // 4. CITIZEN VIEW PORTAL (Admin & Officer Communication Hub)
         // ==========================================
         [HttpGet]
-        public IActionResult CitizenPortal(string phone)
+        public IActionResult CitizenPortal(string phone, string receiverType = "Admin")
         {
             if (string.IsNullOrEmpty(phone)) return RedirectToAction("Index", "Home");
 
             List<ChatMessages> msgs = new List<ChatMessages>();
+            GroupChat room = null;
 
-            var room = _context.GroupChats
-                .Where(g => g.IsDeleted == false)
-                .FirstOrDefault(g => _context.Complaints.Any(c => c.ID == g.ComplaintId && c.CitizenPhone == phone));
+            if (receiverType == "Officer")
+            {
+                room = _context.GroupChats
+                    .Where(g => g.IsDeleted == false)
+                    .FirstOrDefault(g => _context.Complaints.Any(c => c.ID == g.ComplaintId && c.CitizenPhone == phone));
+
+                var assignedOfficers = _context.Officers.Select(o => new { o.Name, o.PhoneNumber }).ToList();
+                ViewBag.OfficerList = assignedOfficers;
+            }
+            else
+            {
+                room = _context.GroupChats
+                    .Where(g => g.IsDeleted == false)
+                    .FirstOrDefault(g => _context.Complaints.Any(c => c.ID == g.ComplaintId && c.CitizenPhone == phone));
+            }
 
             if (room != null)
             {
@@ -297,31 +321,46 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
             }
 
             ViewBag.CitizenPhone = phone;
+            ViewBag.ReceiverType = receiverType;
+
             return View("CitizenChat", msgs);
         }
 
-        // ==========================================
-        // 6b. 🔥 NEW ALIAS: To Support view dynamic tags (asp-action="CitizenChat")
-        // ==========================================
         [HttpGet]
         public IActionResult CitizenChat(string phone)
         {
-            // Session fallback if phone query key is dropped from view request context
             if (string.IsNullOrEmpty(phone))
             {
                 phone = ViewBag.CitizenPhone ?? HttpContext.Session.GetString("UserPhone");
             }
-            return RedirectToAction("CitizenPortal", new { phone = phone });
+            return RedirectToAction("CitizenPortal", new { phone = phone, receiverType = "Admin" });
         }
 
         // ==========================================
-        // 7. CITIZEN PORTAL SEND MESSAGE
+        // 5. CITIZEN SEND MESSAGE TO ADMIN / OFFICER
         // ==========================================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult SendCitizenMessage(int chatId, string citizenPhone, string messageText)
+        public IActionResult SendCitizenMessage(int chatId, string citizenPhone, string messageText, string receiverType = "Admin")
         {
-            if (!string.IsNullOrWhiteSpace(messageText))
+            if (string.IsNullOrWhiteSpace(messageText))
+            {
+                return RedirectToAction("CitizenPortal", new { phone = citizenPhone, receiverType = receiverType });
+            }
+
+            if (chatId == 0 && !string.IsNullOrEmpty(citizenPhone))
+            {
+                var recoveryRoom = _context.GroupChats
+                    .Where(g => g.IsDeleted == false)
+                    .FirstOrDefault(g => _context.Complaints.Any(c => c.ID == g.ComplaintId && c.CitizenPhone == citizenPhone));
+
+                if (recoveryRoom != null)
+                {
+                    chatId = recoveryRoom.ChatId;
+                }
+            }
+
+            try
             {
                 var newMsg = new ChatMessages
                 {
@@ -333,36 +372,93 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                     IsDeleted = false,
                     IsRead = false
                 };
+
                 _context.ChatMessages.Add(newMsg);
                 _context.SaveChanges();
             }
-            return RedirectToAction("CitizenPortal", new { phone = citizenPhone });
+            catch (Exception ex)
+            {
+                return Content($"Database insertion failed: {ex.Message}. Check if ChatId {chatId} exists.");
+            }
+
+            return RedirectToAction("CitizenPortal", new { phone = citizenPhone, receiverType = receiverType });
         }
 
-        // 1. Method ka naam "OfficerPortal" se "OfficerChat" kar diya
         [HttpGet]
-        public IActionResult OfficerChat(string officerPhone)
+        public IActionResult GetMessagesJson(int chatId)
         {
-            // 1. Phone number check
-            if (string.IsNullOrEmpty(officerPhone))
+            var messages = _context.ChatMessages
+                .Where(m => m.ChatId == chatId && m.IsDeleted == false)
+                .OrderBy(m => m.Timestamp)
+                .Select(m => new
+                {
+                    m.MessageId,
+                    m.SenderName,
+                    m.SenderType,
+                    m.MessageText,
+                    FormattedTime = m.Timestamp.ToString("hh:mm tt")
+                }).ToList();
+
+            return Json(messages);
+        }
+
+        // ==========================================
+        // 6. OFFICER PORTAL CHAT ENGINE (Fixed Routing & Admin Support)
+        // ==========================================
+        [HttpGet]
+        public IActionResult OfficerPortalDesk(string phone, string receiverType = "Citizen", string citizenPhone = "")
+        {
+            if (string.IsNullOrEmpty(phone))
             {
-                return Content("Error: Phone number missing hai!");
+                return Content("Error: Officer Phone number missing hai! URL mein ?phone=NUMBER pass karein.");
             }
 
-            // 2. Database se Officer dhundo
-            var officer = _context.Officers.FirstOrDefault(o => o.PhoneNumber == officerPhone);
+            var officer = _context.Officers.FirstOrDefault(o => o.PhoneNumber == phone);
             if (officer == null)
             {
-                return Content("Database mein ye phone number nahi mila: " + officerPhone);
+                return Content("Database mein ye officer phone number nahi mila: " + phone);
             }
 
-            // 3. Messages ki list
-            var msgs = new List<ChatMessages>();
+            // 1. Sidebar List: Active Citizens assigned to this Officer
+            var activeCitizenRooms = (from gc in _context.GroupChats
+                                      where gc.IsDeleted == false
+                                      join comp in _context.Complaints on gc.ComplaintId equals comp.ID
+                                      join assign in _context.ComplaintAssignments on comp.ID equals assign.ComplaintId
+                                      join off in _context.Officers on assign.OfficerId equals off.Id
+                                      where off.PhoneNumber == phone
+                                      select new
+                                      {
+                                          CitizenPhone = comp.CitizenPhone,
+                                          CitizenName = comp.CitizenName,
+                                          ComplaintNo = comp.ID
+                                      }).Distinct().ToList();
 
-            // 4. Room dhundo (Yahan aap filter laga sakte ho agar room assigned hai)
-            var room = _context.GroupChats
-                .Where(g => g.IsDeleted == false)
-                .FirstOrDefault();
+            ViewBag.ActiveCitizensForOfficer = activeCitizenRooms;
+            ViewBag.OfficerName = officer.Name;
+            ViewBag.OfficerPhone = phone;
+            ViewBag.ReceiverType = receiverType;
+            ViewBag.SelectedCitizenPhone = citizenPhone;
+
+            List<ChatMessages> msgs = new List<ChatMessages>();
+            GroupChat room = null;
+
+            // 🔥 OFFICER TO ADMIN COMMUNICATION PIPELINE
+            if (receiverType == "Admin")
+            {
+                // Officer directly Admin se baat karega (Using Officer's phone as the reference chat link)
+                room = _context.GroupChats
+                    .Where(g => g.IsDeleted == false)
+                    .FirstOrDefault(g => _context.Complaints.Any(c => c.ID == g.ComplaintId && c.CitizenPhone == phone));
+            }
+            else // Default: Communicating with Selected Citizen
+            {
+                if (!string.IsNullOrEmpty(citizenPhone))
+                {
+                    room = _context.GroupChats
+                        .Where(g => g.IsDeleted == false)
+                        .FirstOrDefault(g => _context.Complaints.Any(c => c.ID == g.ComplaintId && c.CitizenPhone == citizenPhone));
+                }
+            }
 
             if (room != null)
             {
@@ -371,26 +467,79 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                     .Where(m => m.ChatId == room.ChatId && m.IsDeleted == false)
                     .OrderBy(m => m.Timestamp)
                     .ToList();
+
+                var unreadMsgs = _context.ChatMessages
+                    .Where(m => m.ChatId == room.ChatId && m.IsRead == false && m.SenderType != "Officer")
+                    .ToList();
+
+                if (unreadMsgs.Any())
+                {
+                    unreadMsgs.ForEach(m => m.IsRead = true);
+                    _context.SaveChanges();
+                }
             }
 
-            // 5. Data View ko bhejo
-            ViewBag.OfficerName = officer.Name;
-            ViewBag.OfficerPhone = officer.PhoneNumber;
+            // Dynamic Title Setup for Chat Header
+            if (receiverType == "Admin")
+            {
+                ViewBag.SelectedCitizenName = "Central Admin Desk";
+                ViewBag.SelectedCitizenPhone = phone; // pipeline holder
+            }
+            else
+            {
+                var currentCitizen = _context.Complaints.FirstOrDefault(c => c.CitizenPhone == citizenPhone);
+                ViewBag.SelectedCitizenName = currentCitizen != null ? currentCitizen.CitizenName : "Unknown Citizen";
+            }
 
-            return View("OfficerChat", msgs);
+            // Hamesha 'OfficerChat.cshtml' view hi return hoga, duplicate route match ka khatma!
+            return View("OfficerPortalDesk", msgs);
         }
 
+        // Redirect action ka naam change kiya takay ambiguity khatam ho jaye
+        [HttpGet]
+        public IActionResult GoToOfficerChat(string officerPhone, string citizenPhone = "", string receiverType = "Citizen")
+        {
+            if (string.IsNullOrEmpty(officerPhone))
+            {
+                return Content("Error: officerPhone link mein empty hai.");
+            }
+            return RedirectToAction("OfficerPortalDesk", new { phone = officerPhone, receiverType = receiverType, citizenPhone = citizenPhone });
+        }
+
+        // ==========================================
+        // 7. OFFICER SEND MESSAGE TO CITIZEN / ADMIN
+        // ==========================================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult SendOfficerMessage(int chatId, string officerPhone, string messageText, string senderName)
+        public IActionResult SendOfficerMessage(int chatId, string officerPhone, string citizenPhone, string messageText, string receiverType = "Citizen", string senderName = "")
         {
-            if (!string.IsNullOrWhiteSpace(messageText))
+            if (string.IsNullOrWhiteSpace(messageText))
+            {
+                return RedirectToAction("OfficerPortalDesk", new { phone = officerPhone, receiverType = receiverType, citizenPhone = citizenPhone });
+            }
+
+            // Admin target hai to path officerPhone hoga, warna citizenPhone
+            string targetPhone = (receiverType == "Admin") ? officerPhone : citizenPhone;
+
+            if (chatId == 0 && !string.IsNullOrEmpty(targetPhone))
+            {
+                var recoveryRoom = _context.GroupChats
+                    .Where(g => g.IsDeleted == false)
+                    .FirstOrDefault(g => _context.Complaints.Any(c => c.ID == g.ComplaintId && c.CitizenPhone == targetPhone));
+
+                if (recoveryRoom != null)
+                {
+                    chatId = recoveryRoom.ChatId;
+                }
+            }
+
+            try
             {
                 var newMsg = new ChatMessages
                 {
                     ChatId = chatId,
                     SenderType = "Officer",
-                    SenderName = senderName,
+                    SenderName = !string.IsNullOrEmpty(senderName) ? senderName : "Officer Terminal",
                     MessageText = messageText.Trim(),
                     Timestamp = DateTime.Now,
                     IsDeleted = false,
@@ -399,9 +548,12 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                 _context.ChatMessages.Add(newMsg);
                 _context.SaveChanges();
             }
+            catch (Exception ex)
+            {
+                return Content($"Database insertion failed: {ex.Message}. ChatId {chatId} verified nahi hai.");
+            }
 
-            // 3. Redirect action ko bhi update kar diya
-            return RedirectToAction("OfficerChat", new { officerPhone = officerPhone });
+            return RedirectToAction("OfficerPortalDesk", new { phone = officerPhone, receiverType = receiverType, citizenPhone = citizenPhone });
         }
     }
-}
+    }
