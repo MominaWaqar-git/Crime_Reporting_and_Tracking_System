@@ -1,0 +1,10 @@
+﻿# Build folders
+bin/
+obj/
+.vs/
+.git/
+.dockerignore
+Dockerfile
+docker-compose.yml
+# Uploads folder (persistence ke liye)
+wwwroot/uploads/

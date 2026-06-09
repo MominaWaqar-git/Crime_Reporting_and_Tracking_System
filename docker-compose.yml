@@ -1,0 +1,28 @@
+﻿services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: crimevision_db
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=YourStrongPassword123!
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql-data:/var/opt/mssql
+
+  crimevision:
+    build:
+      context: ./Crime_Reporting_and_Tracking_System
+      dockerfile: Dockerfile
+    container_name: crimevision_app
+    ports:
+      - "8080:80"
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=db;Database=CrimeDB;User Id=sa;Password=YourStrongPassword123!;TrustServerCertificate=True;
+    volumes:
+      - ./wwwroot/uploads:/app/wwwroot/uploads
+    depends_on:
+      - db
+
+volumes:
+  sql-data:

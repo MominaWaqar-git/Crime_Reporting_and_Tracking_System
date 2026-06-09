@@ -288,13 +288,23 @@
                         foreach (var target in ViewBag.ActiveCitizensForOfficer)
                         {
                             string sessionStatus = selectedCitizen == target.CitizenPhone ? "active-session" : "";
-                            <a href="/Chat/OfficerChat?officerPhone=@officerPhone&citizenPhone=@target.CitizenPhone" class="user-item @sessionStatus">
-                                <div class="avatar-placeholder">@(string.IsNullOrEmpty(target.CitizenName) ? "?" : target.CitizenName.Substring(0, 1).ToUpper())</div>
-                                <div style="flex: 1;">
-                                    <div style="font-size: 14px; font-weight: 600; color: #f8fafc;">@target.CitizenName</div>
-                                    <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;"><i class="fa-solid fa-mobile-screen-button"></i> @target.CitizenPhone</div>
+                            <a href="/Chat/GoToOfficerChat?officerPhone=@officerPhone&citizenPhone=@target.CitizenPhone&receiverType=Citizen"
+                               class="user-item @(selectedCitizen == target.CitizenPhone ? "active-session" : "")">
+
+                                <div class="avatar-placeholder">
+                                    @(string.IsNullOrEmpty(target.CitizenName) ? "?" : target.CitizenName.Substring(0, 1).ToUpper())
+                                </div>
+
+                                <div style="display: flex; flex-direction: column; justify-content: center; gap: 2px;">
+                                    <div style="font-size: 14px; font-weight: 600; color: #f8fafc;">
+                                        @target.CitizenName
+                                    </div>
+                                    <div style="font-size: 11px; color: #94a3b8;">
+                                        <i class="fa-solid fa-mobile-screen-button"></i> @target.CitizenPhone
+                                    </div>
                                 </div>
                             </a>
+                           
                         }
                     }
                 </div>
