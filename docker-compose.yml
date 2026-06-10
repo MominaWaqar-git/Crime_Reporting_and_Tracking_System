@@ -1,4 +1,6 @@
-﻿services:
+﻿version: '3.8'
+
+services:
   db:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: crimevision_db
@@ -7,6 +9,12 @@
       - MSSQL_SA_PASSWORD=YourStrongPassword123!
     ports:
       - "1433:1433"
+    # Healthcheck ensure karta hai ki DB ready hai tabhi app start ho
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrongPassword123! -Q 'SELECT 1'"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
     volumes:
       - sql-data:/var/opt/mssql
 
@@ -19,10 +27,11 @@
       - "8080:80"
     environment:
       - ConnectionStrings__DefaultConnection=Server=db;Database=CrimeDB;User Id=sa;Password=YourStrongPassword123!;TrustServerCertificate=True;
+    depends_on:
+      db:
+        condition: service_healthy
     volumes:
       - ./wwwroot/uploads:/app/wwwroot/uploads
-    depends_on:
-      - db
 
 volumes:
   sql-data:
