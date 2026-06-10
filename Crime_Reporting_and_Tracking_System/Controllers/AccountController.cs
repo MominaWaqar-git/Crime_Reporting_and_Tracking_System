@@ -219,6 +219,13 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
         [HttpGet]
         public IActionResult CitizenDashboard()
         {
+            // 1. Session check
+            string citizenPhone = HttpContext.Session.GetString("UserPhone");
+            if (string.IsNullOrEmpty(citizenPhone))
+            {
+                return RedirectToAction("UserLogin", "Account");
+            }
+
             List<dynamic> complaintsList = new List<dynamic>();
             int totalCases = 0;
             int activeCases = 0;
@@ -228,20 +235,21 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
 
             using (SqlConnection con = new SqlConnection(conString))
             {
-                string query = "SELECT ID, CrimeType, IncidentDate, Location, Status FROM Complaints ORDER BY ID DESC";
+                string query = "SELECT ID, CrimeType, IncidentDate, Location, Status FROM Complaints WHERE CitizenPhone = @phone ORDER BY ID DESC";
 
                 using (SqlCommand cmd = new SqlCommand(query, con))
                 {
+                    cmd.Parameters.AddWithValue("@phone", citizenPhone);
+
                     con.Open();
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
-                        (complaintsList).Clear();
                         while (reader.Read())
                         {
                             string crimeType = reader["CrimeType"].ToString();
                             string statusText = reader["Status"].ToString();
 
-                            // 🚨 CHAT FILTER: System entries ko count aur view se skip karne ke liye
+                            // 🚨 CHAT FILTER
                             if (crimeType.Contains("officer Communication", StringComparison.OrdinalIgnoreCase) ||
                                 crimeType.Contains("direct chat reference", StringComparison.OrdinalIgnoreCase) ||
                                 statusText.Contains("officer Communication", StringComparison.OrdinalIgnoreCase) ||
@@ -260,12 +268,16 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
                             complaintsList.Add(complaint);
 
                             totalCases++;
+
+                            // 🎯 STATUS COUNTING LOGIC (UPDATED)
                             string status = statusText.ToLower();
+
                             if (status.Contains("progress") || status.Contains("pending"))
                             {
                                 activeCases++;
                             }
-                            else if (status.Contains("resolved"))
+                            // Yahan ab status mein 'resolved' ya 'completed' kuch bhi milega toh +1 hoga
+                            else if (status.Contains("resolved") || status.Contains("completed"))
                             {
                                 resolvedCases++;
                             }
@@ -286,14 +298,22 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
         [HttpGet]
         public IActionResult MyComplaints()
         {
+            string citizenPhone = HttpContext.Session.GetString("UserPhone");
+
+            // Agar login nahi hai to seedha login screen par bhejo
+            if (string.IsNullOrEmpty(citizenPhone))
+            {
+                return RedirectToAction("UserLogin", "Account");
+            }
+
             List<dynamic> complaintsList = new List<dynamic>();
             string conString = _configuration.GetConnectionString("CrimeDB");
-
             using (SqlConnection con = new SqlConnection(conString))
             {
-                string query = "SELECT ID, CrimeType, Location, Status FROM Complaints ORDER BY ID DESC";
+                string query = "SELECT ID, CrimeType, Location, Status FROM Complaints WHERE CitizenPhone = @phone ORDER BY ID DESC";
                 using (SqlCommand cmd = new SqlCommand(query, con))
                 {
+                    cmd.Parameters.AddWithValue("@phone", citizenPhone);
                     con.Open();
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {

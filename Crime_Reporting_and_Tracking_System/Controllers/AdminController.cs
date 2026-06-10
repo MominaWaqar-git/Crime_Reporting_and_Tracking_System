@@ -768,67 +768,97 @@ namespace Crime_Reporting_and_Tracking_System.Controllers
             return RedirectToAction("CrimeReports");
         }
         // ==========================================
-        // 5. COMPLETE COMPLAINT (With Final Closure Message)
+        // 5. COMPLETE COMPLAINT (UPDATED WITH TRY-CATCH)
         // ==========================================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult CompleteComplaint(int complaintId)
+        public IActionResult CompleteComplaint(int complaintId) // <--- Ensure this matches your HTML input name
         {
             if (!IsAdminAuthenticated())
                 return RedirectToAction("AdminLogin", "Account");
+
+            if (complaintId <= 0)
+            {
+                TempData["ErrorMessage"] = "Invalid Complaint ID.";
+                return RedirectToAction("CrimeReports");
+            }
 
             int chatId = 0;
             string crimeType = "N/A";
             string citizenName = "Citizen";
 
-            using (SqlConnection con = new SqlConnection(_connectionString))
+            try
             {
-                con.Open();
-
-                // 1. Update
-                string update = "UPDATE Complaints SET Status='Completed' WHERE ID=@id";
-                using (SqlCommand cmd = new SqlCommand(update, con))
+                using (SqlConnection con = new SqlConnection(_connectionString))
                 {
-                    cmd.Parameters.AddWithValue("@id", complaintId);
-                    cmd.ExecuteNonQuery();
-                }
+                    con.Open();
 
-                // 2. Fetch
-                string fetch = "SELECT CrimeType, CitizenName FROM Complaints WHERE ID=@id";
-                using (SqlCommand cmd = new SqlCommand(fetch, con))
-                {
-                    cmd.Parameters.AddWithValue("@id", complaintId);
-                    using (SqlDataReader r = cmd.ExecuteReader())
+                    // 1. Update Status
+                    string update = "UPDATE Complaints SET Status='Completed' WHERE ID=@id";
+                    using (SqlCommand cmd = new SqlCommand(update, con))
                     {
-                        if (r.Read())
+                        cmd.Parameters.AddWithValue("@id", complaintId);
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    // 2. Fetch Details
+                    string fetch = "SELECT CrimeType, CitizenName FROM Complaints WHERE ID=@id";
+                    using (SqlCommand cmd = new SqlCommand(fetch, con))
+                    {
+                        cmd.Parameters.AddWithValue("@id", complaintId);
+                        using (SqlDataReader r = cmd.ExecuteReader())
                         {
-                            crimeType = r["CrimeType"] != DBNull.Value ? r["CrimeType"].ToString() : "N/A";
-                            citizenName = r["CitizenName"] != DBNull.Value ? r["CitizenName"].ToString() : "Citizen";
+                            if (r.Read())
+                            {
+                                crimeType = r["CrimeType"] != DBNull.Value ? r["CrimeType"].ToString() : "N/A";
+                                citizenName = r["CitizenName"] != DBNull.Value ? r["CitizenName"].ToString() : "Citizen";
+                            }
+                        }
+                    }
+
+                    // 3. Chat Room Check
+                    string getChat = "SELECT TOP 1 ChatId FROM GroupChats WHERE ComplaintId=@id ORDER BY ChatId DESC";
+                    using (SqlCommand cmd = new SqlCommand(getChat, con))
+                    {
+                        cmd.Parameters.AddWithValue("@id", complaintId);
+                        var res = cmd.ExecuteScalar();
+                        if (res != null) chatId = Convert.ToInt32(res);
+                    }
+
+                    if (chatId > 0)
+                    {
+                        string msg = $"✅ *CASE CLOSED*\n\nDear {citizenName},\n\nCase #{complaintId} has been completed.\n\nCrime: {crimeType}\n\nThank you for using CrimeVision.";
+
+                        // Safe Message Insert (Handling Timestamp column dynamically if it causes errors)
+                        try
+                        {
+                            string insert = "INSERT INTO ChatMessages (ChatId, SenderType, SenderName, MessageText, Timestamp) VALUES (@chatId, 'System', 'CrimeVision Bot', @msg, GETDATE())";
+                            using (SqlCommand cmd = new SqlCommand(insert, con))
+                            {
+                                cmd.Parameters.AddWithValue("@chatId", chatId);
+                                cmd.Parameters.AddWithValue("@msg", msg);
+                                cmd.ExecuteNonQuery();
+                            }
+                        }
+                        catch (SqlException)
+                        {
+                            string insertNoTime = "INSERT INTO ChatMessages (ChatId, SenderType, SenderName, MessageText) VALUES (@chatId, 'System', 'CrimeVision Bot', @msg)";
+                            using (SqlCommand cmd = new SqlCommand(insertNoTime, con))
+                            {
+                                cmd.Parameters.AddWithValue("@chatId", chatId);
+                                cmd.Parameters.AddWithValue("@msg", msg);
+                                cmd.ExecuteNonQuery();
+                            }
                         }
                     }
                 }
 
-                // 3. Chat
-                string getChat = "SELECT ChatId FROM GroupChats WHERE ComplaintId=@id";
-                using (SqlCommand cmd = new SqlCommand(getChat, con))
-                {
-                    cmd.Parameters.AddWithValue("@id", complaintId);
-                    var res = cmd.ExecuteScalar();
-                    if (res != null) chatId = Convert.ToInt32(res);
-                }
-
-                if (chatId > 0)
-                {
-                    string msg = $"✅ *CASE CLOSED*\n\nDear {citizenName},\n\nCase #{complaintId} has been completed.\n\nCrime: {crimeType}\n\nThank you for using CrimeVision.";
-
-                    string insert = "INSERT INTO ChatMessages (ChatId, SenderType, SenderName, MessageText) VALUES (@chatId, 'System', 'CrimeVision Bot', @msg)";
-                    using (SqlCommand cmd = new SqlCommand(insert, con))
-                    {
-                        cmd.Parameters.AddWithValue("@chatId", chatId);
-                        cmd.Parameters.AddWithValue("@msg", msg);
-                        cmd.ExecuteNonQuery();
-                    }
-                }
+                TempData["SuccessMessage"] = "Complaint marked as Completed successfully!";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "ERROR IN COMPLETION: " + ex.Message;
+                System.Diagnostics.Debug.WriteLine("COMPLETION ERROR: " + ex.ToString());
             }
 
             return RedirectToAction("CrimeReports");

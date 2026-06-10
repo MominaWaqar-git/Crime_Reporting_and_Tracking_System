@@ -496,9 +496,9 @@
 
                                             <form action="/Admin/CompleteComplaint" method="post" class="confirm-form" style="display:inline; width:100%;" data-title="Resolve Case?" data-text="Mark report #@item.ID as completed and move to archive?">
                                                 @Html.AntiForgeryToken()
-                                                <input type="hidden" name="id" value="@item.ID" />
+                                                <input type="hidden" name="complaintId" value="@item.ID" />  <!-- 👈 "id" ko "complaintId" kar diya -->
                                                 <button type="submit" class="btn-action btn-complete">
-                                                    <i class="fa-solid fa-box-archive"></i> Complete
+                                                <i class="fa-solid fa-box-archive"></i> Complete
                                                 </button>
                                             </form>
 
