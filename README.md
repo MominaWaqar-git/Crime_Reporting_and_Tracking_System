@@ -62,6 +62,4 @@ Nafeesa Haroon
 
 Note 
 This project is for educational purpose
-forcement workflows. The system serves as a modern bridge between citizens and police 
-authorities, enabling better communication, faster response times, and improved case 
-management. 
+
