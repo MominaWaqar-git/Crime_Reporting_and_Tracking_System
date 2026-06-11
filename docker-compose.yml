@@ -9,14 +9,15 @@ services:
       - MSSQL_SA_PASSWORD=YourStrongPassword123!
     ports:
       - "1433:1433"
-    # Healthcheck ensure karta hai ki DB ready hai tabhi app start ho
     healthcheck:
       test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrongPassword123! -Q 'SELECT 1'"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
     volumes:
       - sql-data:/var/opt/mssql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
 
   crimevision:
     build:

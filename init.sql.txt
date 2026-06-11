@@ -1,0 +1,132 @@
+-- Database Setup
+CREATE DATABASE CrimeDB;
+GO
+
+USE CrimeDB;
+GO
+
+-- 1. Admins Table
+CREATE TABLE [dbo].[Admins] (
+    [Id]       INT            IDENTITY (1, 1) NOT NULL PRIMARY KEY,
+    [Username] NVARCHAR (100) NOT NULL,
+    [Email]    NVARCHAR (150) NOT NULL,
+    [Password] NVARCHAR (100) NOT NULL
+);
+GO
+
+-- 2. Officers Table
+CREATE TABLE [dbo].[Officers] (
+    [Id]                 INT            IDENTITY (1, 1) NOT NULL PRIMARY KEY,
+    [Name]               NVARCHAR (100) NOT NULL,
+    [Email]              NVARCHAR (150) NOT NULL UNIQUE,
+    [CNIC]               NVARCHAR (13)  NOT NULL UNIQUE,
+    [PhoneNumber]        NVARCHAR (11)  NOT NULL,
+    [Rank]               NVARCHAR (50)  NOT NULL,
+    [Status]             NVARCHAR (30)  NOT NULL,
+    [StationName]        NVARCHAR (200) NOT NULL,
+    [Address]            NVARCHAR (250) NOT NULL,
+    [ProfilePicturePath] NVARCHAR (255) NULL
+);
+GO
+
+-- 3. Users Table
+CREATE TABLE Users (
+    ID INT IDENTITY(1,1) PRIMARY KEY,
+    FullName NVARCHAR(100) NOT NULL,
+    Email NVARCHAR(100) NOT NULL UNIQUE,
+    CNIC NVARCHAR(20) NOT NULL UNIQUE,
+    PhoneNumber NVARCHAR(20) NULL,
+    Password NVARCHAR(255) NOT NULL,
+    Status NVARCHAR(50) NOT NULL DEFAULT 'Active',
+    ProfileImage VARCHAR(MAX) NULL
+);
+GO
+
+-- 4. Complaints Table
+CREATE TABLE Complaints (
+    ID INT IDENTITY(1,1) PRIMARY KEY,
+    CrimeType NVARCHAR(100) NOT NULL,
+    IncidentDate DATETIME NOT NULL,
+    Location NVARCHAR(255) NOT NULL,
+    Description NVARCHAR(MAX) NULL,
+    Status NVARCHAR(50) DEFAULT 'Pending Approval',
+    CitizenName NVARCHAR(100) NOT NULL,
+    CitizenPhone NVARCHAR(20) NOT NULL,
+    Latitude DECIMAL(10, 8),
+    Longitude DECIMAL(11, 8)
+);
+GO
+
+-- 5. PublicAlerts Table
+CREATE TABLE PublicAlerts (
+    ID INT IDENTITY(1,1) PRIMARY KEY,
+    Title NVARCHAR(150) NOT NULL,
+    Description NVARCHAR(MAX) NOT NULL,
+    AlertLevel NVARCHAR(50) NOT NULL,
+    Location NVARCHAR(255) NOT NULL,
+    DateCreated DATETIME DEFAULT GETDATE()
+);
+GO
+
+-- 6. ComplaintAssignments Table
+CREATE TABLE ComplaintAssignments (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    ComplaintId INT NOT NULL,
+    OfficerId INT NOT NULL,
+    AssignedDate DATETIME NOT NULL,
+    FOREIGN KEY (ComplaintId) REFERENCES Complaints(ID) ON DELETE CASCADE,
+    FOREIGN KEY (OfficerId) REFERENCES Officers(Id) ON DELETE CASCADE
+);
+GO
+
+-- 7. Evidence Table
+CREATE TABLE Evidence(
+	Id INT PRIMARY KEY IDENTITY(1,1),
+	ComplaintId INT,
+	FilePath NVARCHAR(MAX),
+	UploadDate DATETIME DEFAULT GETDATE(),
+	FOREIGN KEY (ComplaintId) REFERENCES Complaints(Id) ON DELETE CASCADE
+);
+GO
+
+-- 8. GroupChats Table
+CREATE TABLE GroupChats (
+    ChatId INT IDENTITY(1,1) PRIMARY KEY,
+    ComplaintId INT NOT NULL FOREIGN KEY REFERENCES Complaints(ID) ON DELETE CASCADE,
+    CreatedDate DATETIME DEFAULT GETDATE(),
+    IsDeleted BIT DEFAULT 0
+);
+GO
+
+-- 9. ChatMessages Table
+CREATE TABLE ChatMessages (
+    MessageId INT IDENTITY(1,1) PRIMARY KEY,
+    ChatId INT FOREIGN KEY REFERENCES GroupChats(ChatId) ON DELETE CASCADE,
+    SenderType VARCHAR(50),
+    SenderName NVARCHAR(100),
+    MessageText NVARCHAR(MAX),
+    Timestamp DATETIME DEFAULT GETDATE(),
+    IsDeleted BIT DEFAULT 0,
+    IsRead BIT DEFAULT 0
+);
+GO
+
+-- 10. Messages Table
+CREATE TABLE Messages (
+    MessageID INT PRIMARY KEY IDENTITY(1,1),
+    ComplaintID INT,
+    SenderID INT,
+    SenderType NVARCHAR(20),
+    MessageContent NVARCHAR(MAX),
+    Timestamp DATETIME DEFAULT GETDATE()
+);
+GO
+
+-- 11. Criminals Table
+CREATE TABLE Criminals (
+    CriminalID INT PRIMARY KEY IDENTITY(1,1),
+    FullName NVARCHAR(100) NOT NULL,
+    CrimeHistory NVARCHAR(MAX),
+    Status NVARCHAR(50)
+);
+GO
